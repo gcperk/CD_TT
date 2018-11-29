@@ -64,17 +64,17 @@ library(mapview)
 #temp.dir = "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Data"
 
 # to run analysis on C drive: 
-#out.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/"
-#temp.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Data/"
+out.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/"
+temp.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Data/"
 
-temp.dir = "T:/temp/Perkins/Data/"
-out.dir = "T:/temp/Perkins/Outputs/" 
+temp.dir = "T:/Temp/Perkins/Data/"
+out.dir = "T:/Temp/Perkins/Outputs/" 
 
 ## Set your input geodatabases (this will be where you saved your arcmap exports)
 ## edit these to your filepath and name of gdb
 
 #Base= "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Data/Base_data.gdb" # contains 
-Base= "T:/temp/Perkins/Data/Base_data.gdb"
+Base= "T:/Temp/Perkins/Data/Base_data.gdb"
 #Base= "C:/temp/TweedTelkwa/Temp/Perkins/Data/Base_data.gdb" # contains 
 
 ## List all feature classes in a file geodatabase
@@ -132,7 +132,7 @@ all.range <- st_make_valid(all.range)
 all.range.out <- data.frame(all.range)%>%
   dplyr::select(SiteName,V17_CH )
  
-gc()
+#gc()
 #b.range <- st_read(dsn=Base,layer="TT_bdry_diss") ; plot(st_geometry(all.range))
 #b.HWSR <- st_read(dsn=Base,layer="B_HWSR") ; plot(st_geometry(b.HWSR))
 ##b.LSR <- st_read(dsn=Base,layer="B_LSR"); plot(st_geometry(b.LSR)) ## this is not working correctly 
@@ -460,64 +460,110 @@ b.s1 <- st_union(b.s1)
       b.r1.df = data.frame(b.r1)        # calcaulte area
       b.r1.df.out  = b.r1.df %>% 
         group_by(SiteName,V17_CH) %>% 
-        summarise(R_Roade_area_m = sum(Area.m))
-
-
-      
-      
-      ## STILL NEED TO FIX THIS ONE..
-      
-      
-## Tweedsmuir herd 
-      b.r2.sf = sf::st_read(dsn = Base , layer ="Tw_roads" ) 
-      b.r2.sf <- st_zm( b.r2.sf ,drop = TRUE)
-      #b.r2.sf =st_is_valid( b.r2.sf)
-      b.r2.sf <- st_buffer(b.r2.sf,7.5)  # buffer    ## STILL NEED TO FIX THIS ONE..
+        summarise(R_Road_area_m = sum(Area.m))
     
-      st_is_valid(b.r2.sf )
+## Tweedsmuir herd # Need to break this up into smaller sections then buffer and disolve with ArcMap
+      # HWSR
+      b.r2.sf = sf::st_read(dsn = Base , layer ="Tw_HWSR_Rd_bu" )
+      st_is_valid(b.r2.sf)
       b.r2.sf = st_make_valid(b.r2.sf)
       b.r2.sf <- st_cast(b.r2.sf,"POLYGON")
-      b.r2 = st_intersection(all.range,b.r2.sf )  # intersect with single all ranges
-
+      b.r2 = st_intersection(all.range,b.r2.sf)
       b.r2$Area.m <- as.numeric(st_area(b.r2))
-      plot(st_geometry(b.r2))
-      #st_write(r.pipe.int,"Dist_R_pipe.shp")       #write out individual dist_layer for Range
-      b.r2.df = data.frame(b.r2)        # calcaulte area
+      
+      b.r2.df = as.data.frame(b.r2)
       b.r2.df.out  = b.r2.df %>% 
-        group_by(SiteName,V17_CH) %>% 
+        group_by(SiteName,V17_CH) %>%
+        filter(V17_CH == "High Elevation Winter/Summer Range") %>% 
         summarise(R_Road_area_m = sum(Area.m))
       
-     # join the two roads outputs together 
+      # add to the Telkwa data table and the spatial file. 
+      b.df.out <- rbind(b.r1.df.out,b.r2.df.out) # add to the roads summary table 
+      roads.union = st_union(b.r1,b.r2); rm(b.r1); rm(b.r2);  plot(st_geometry(roads.union))
+      roads.union = st_union(roads.union)
+  
+       # LWR 
+      b.r2.sf = sf::st_read(dsn = Base , layer ="Tw_LWR_Rd_bu"  ) 
+      b.r2.sf = st_make_valid(b.r2.sf)
+      b.r2.sf <- st_zm( b.r2.sf ,drop = TRUE)
+      b.r2.sf <- st_cast(b.r2.sf,"POLYGON")
+      b.r2.sf <- st_union(b.r2.sf)
+      b.r2 = st_intersection(all.range,b.r2.sf)
+      b.r2$Area.m <- as.numeric(st_area(b.r2))
+      
+      b.r2.df = as.data.frame(b.r2)
+      b.r2.df.out  = b.r2.df %>% 
+        group_by(SiteName,V17_CH) %>%
+        filter(V17_CH == "Low Elevation Winter Range") %>% 
+        summarise(R_Road_area_m = sum(Area.m))
+   
+      # add to the Telkwa data table and the spatial file. 
+      b.df.out <- rbind( b.df.out,b.r2.df.out) # add to the roads summary table 
+      roads.union = st_union( roads.union,b.r2); rm(b.r2);  plot(st_geometry(roads.union))
+      roads.union = st_cast(roads.union,"POLYGON")
+      roads.union = st_union(roads.union)
+      roads.union = st_cast(roads.union,"POLYGON")
+      
+      # LSR 
+      b.r2.sf = sf::st_read(dsn = Base , layer ="Tw_LSR_Rd_bd"  ) 
+      b.r2.sf = st_make_valid(b.r2.sf)
+      b.r2.sf <- st_zm( b.r2.sf ,drop = TRUE)
+      b.r2.sf <- st_cast(b.r2.sf,"POLYGON")
+      b.r2.sf <- st_union(b.r2.sf)
+      b.r2 = st_intersection(all.range,b.r2.sf)
+      b.r2$Area.m <- as.numeric(st_area(b.r2))
+      
+      b.r2.df = as.data.frame(b.r2)
+      b.r2.df.out  = b.r2.df %>% 
+        group_by(SiteName,V17_CH) %>%
+        filter(V17_CH == "Low Elevation Summer Range") %>% 
+        summarise(R_Road_area_m = sum(Area.m))
+      
+      # add to the Telkwa data table and the spatial file. 
+      b.df.out <- rbind( b.df.out,b.r2.df.out) # add to the roads summary table 
+      roads.union = st_union( roads.union,b.r2); rm(b.r2);  plot(st_geometry(roads.union))
+      roads.union = st_cast(roads.union,"POLYGON")
+      roads.union = st_union(roads.union) 
+      
+      # Matrix  
+      b.r2.sf = sf::st_read(dsn = Base , layer ="Tw_MR_Rd_bd"  ) 
+      b.r2.sf = st_make_valid(b.r2.sf)
+      #b.r2.sf <- st_zm( b.r2.sf ,drop = TRUE)
+      b.r2.sf <- st_cast(b.r2.sf,"POLYGON")
+      b.r2.sf <- st_union(b.r2.sf)
+      b.r2 = st_intersection(all.range,b.r2.sf)
+      b.r2 <- st_cast(b.r2,"POLYGON")
+      b.r2$Area.m <- as.numeric(st_area(b.r2))
+      
+      b.r2.df = as.data.frame(b.r2)
+      b.r2.df.out  = b.r2.df %>% 
+        group_by(SiteName,V17_CH) %>%
+        filter(V17_CH == "Matrix Range") %>% 
+        summarise(R_Road_area_m = sum(Area.m))
+      
+      # add to the Telkwa data table and the spatial file. 
+      b.df.out <- rbind( b.df.out,b.r2.df.out) # add to the roads summary table 
       
       
       
+      ## WORKING UP TO HERE 
       
       
-      ### NEED TO CHECK THESE ARE WORKING CORRECTLY 
-      
-      # still neeed to check these are working correctly 
-     
-      roads.out = b.r1.df.out
-      #roads.out = join(b.r1.df.out, b.r2.df.out) 
-      
+      roads.union = st_union(roads.union)
+      roads.union = st_union(roads.union,b.r2.u); rm(b.r2.u);  plot(st_geometry(roads.union))
+      roads.union = st_cast(roads.union,"POLYGON")
+      roads.union = st_union(roads.union)
+    
+      ##Join the Roads layers back to the "combined static disturbance"
+    
       # combine into disturbance by layer 
-      all.range.out <- left_join(all.range.out,roads.out)  
-      #all.range.out <- left_join(all.range.out,b.r1.df.out)  
+      all.range.out <- left_join(all.range.out,b.df.out)  
       all.range.out[is.na(all.range.out)]<-0      
       
-      
       ## ALL DISTURBANCE: UNION 11 # may need to run this in stand alone R rather than R -studio
-      out11 = st_union(out10,b.r1 ) ; plot(st_geometry(out11)) ; rm(out10); rm(b.r1)
+      out11 = st_union(out10,roads.union ) ; plot(st_geometry(out11)) ; rm(out10); rm(b.r1)
       out11 = st_union(out11); plot(st_geometry(out11))
      
-      
-      
-      
-      ## STILL TO TEST THIS BIT 
-      out12 = st_union(out11,b.r2 ) ; plot(st_geometry(out12)) ; rm(out11); rm(b.r.2)
-      out12 = st_union(out12); plot(st_geometry(out12))
-      ##x.area = sum(st_area(out8))     ; x.area  # 420881436 [m^2]
-      
 #######################################################################
 
 # end of part 1: write out all the static disturbance types;
@@ -544,7 +590,6 @@ for (obj in ls()) { message(obj); print(object.size(get(obj)), units='auto') }
 # Cutblocks, 
 # Burns
 # Pests
-
 
 
 #out9 = st_read(dsn = Base, layer = "Disturb_poly_draft1" )
@@ -640,7 +685,6 @@ gc()
     st_write(Cut.dec.2000,paste(temp.dir,"Cut.te.dec.2000.shp",sep = "")) # this writes out as single layer
     st_write(Cut.dec.2010,paste(temp.dir,"Cut.te.dec.2010.shp",sep = "")) # this writes out as single layer
     
-    
 # HERD 2)  ## Tweedsmuir
     b.r.c2= st_read(dsn = Base , layer = "cutblock_union_Tw")
     b.r.c2 <- st_zm(b.r.c2 ,drop = TRUE)
@@ -720,8 +764,7 @@ gc()
     st_write(Cut.dec.19902,paste(temp.dir,"Cut.tw.dec.1990.shp",sep = "")) # this writes out as single layer
     st_write(Cut.dec.20002,paste(temp.dir,"Cut.tw.dec.2000.shp",sep = "")) # this writes out as single layer
     st_write(Cut.dec.20102,paste(temp.dir,"Cut.tw.dec.2010.shp",sep = "")) # this writes out as single layer
-    
-   
+
     ###############
   
      # Join the telkwa and Tweedsmuir herd info together   
