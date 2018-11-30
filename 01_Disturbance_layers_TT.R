@@ -67,15 +67,16 @@ library(mapview)
 out.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/"
 temp.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Data/"
 
-temp.dir = "T:/Temp/Perkins/Data/"
-out.dir = "T:/Temp/Perkins/Outputs/" 
+#temp.dir = "T:/Temp/Perkins/Data/"
+#out.dir = "T:/Temp/Perkins/Outputs/" 
 
 ## Set your input geodatabases (this will be where you saved your arcmap exports)
 ## edit these to your filepath and name of gdb
 
 #Base= "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Data/Base_data.gdb" # contains 
-Base= "T:/Temp/Perkins/Data/Base_data.gdb"
-#Base= "C:/temp/TweedTelkwa/Temp/Perkins/Data/Base_data.gdb" # contains 
+#Base= "T:/Temp/Perkins/Data/Base_data.gdb"
+
+Base= "C:/Temp/TweedTelkwa/Temp/Perkins/Data/Base_data.gdb" # contains 
 
 ## List all feature classes in a file geodatabase
 subset(ogrDrivers(), grepl("GDB", name))
@@ -86,25 +87,27 @@ base_list <- ogrListLayers(Base); print(base_list)
 
 b.range <- st_read(dsn=Base,layer="TT_boundary")
 b.range <-st_cast(b.range,"MULTIPOLYGON")     # fix overlaps
+#plot(st_geometry(b.range))
+plot(b.range)
 
 # calculate the areas of each of the Herd habitat types (HWSR,LWR,LSR,MR,ALL)
 Herd_key<- data.frame(b.range) %>% 
   dplyr::select(SiteName,V17_CH,SHAPE_Area) %>%  # note SHAPE_AREA is calculated in square meters
   mutate(R_area_ha = SHAPE_Area/10000) %>%
-  dplyr::select(c(SiteName,V17_CH,R_area_ha)) %>%
+  dplyr::select(SiteName,V17_CH,R_area_ha) %>%
   group_by(SiteName)%>%
   summarise(R_area_ha = sum(R_area_ha))
 
-Herd_key_detail <-  data.frame(b.range) %>% 
-  dplyr::select(SiteName,V17_CH,SHAPE_Area) %>%  # note SHAPE_AREA is calculated in square meters
-  mutate(H_area_ha = SHAPE_Area/10000) %>%
-  group_by(SiteName,V17_CH)%>%
-  summarise(R_area_ha = H_area_ha) %>%
-  spread(V17_CH,R_area_ha) %>%
-  rename(HWSR_ha = 'High Elevation Winter/Summer Range') %>%
-  rename(LSR_ha = 'Low Elevation Summer Range')%>%
-  rename(LWR_ha = 'Low Elevation Winter Range')%>%
-  rename(MR_ha = 'Matrix Range')
+#Herd_key_detail <-  data.frame(b.range) %>% 
+#  dplyr::select(SiteName,V17_CH,SHAPE_Area) %>%  # note SHAPE_AREA is calculated in square meters
+#  mutate(H_area_ha = SHAPE_Area/10000) %>%
+#  group_by(SiteName,V17_CH)%>%
+#  summarise(R_area_ha = H_area_ha) %>%
+#  spread(V17_CH,R_area_ha) %>%
+#  rename(HWSR_ha = 'High Elevation Winter/Summer Range') %>%  # Adjust here depending on what catergories you have for your herds. 
+#  rename(LSR_ha = 'Low Elevation Summer Range')%>%
+#  rename(LWR_ha = 'Low Elevation Winter Range')%>%
+#  rename(MR_ha = 'Matrix Range')
 
 Herd_key = left_join(Herd_key,Herd_key_detail)
 Herd_key[is.na(Herd_key)] <- 0
@@ -126,13 +129,12 @@ write.csv(Herd_key_detail, paste(out.dir,"Herd_key_detail.csv",sep = ""))
 # Read in the boundary data  
 
 all.range <- st_read(dsn=Base,layer="TT_boundary"); plot(st_geometry(all.range))
-all.range <- st_zm(all.range,drop = TRUE)
-all.range <- st_cast(all.range,"MULTIPOLYGON")
+all.range <- st_zm(all.range,drop = TRUE) # drop the z component of the feature class
+all.range <- st_cast(all.range,"MULTIPOLYGON") ; st_is_valid(all.range)
 all.range <- st_make_valid(all.range)
 all.range.out <- data.frame(all.range)%>%
   dplyr::select(SiteName,V17_CH )
- 
-#gc()
+
 #b.range <- st_read(dsn=Base,layer="TT_bdry_diss") ; plot(st_geometry(all.range))
 #b.HWSR <- st_read(dsn=Base,layer="B_HWSR") ; plot(st_geometry(b.HWSR))
 ##b.LSR <- st_read(dsn=Base,layer="B_LSR"); plot(st_geometry(b.LSR)) ## this is not working correctly 
@@ -150,13 +152,13 @@ r.pipe <- st_read(dsn=Base,layer="Pipeline_clip") # multistring
           st_is_valid(r.pipe.int)                       # check valid geometry
           r.pipe.int = st_cast(r.pipe.int,"POLYGON")     # fix overlaps
           r.pipe.int$Area.m <- as.numeric(st_area(r.pipe.int))
+          
           plot(st_geometry(r.pipe.int))
           #st_write(r.pipe.int,"Dist_R_pipe.shp")       #write out individual dist_layer for Range
           r.pipe.int.df = data.frame(r.pipe.int)        # calcaulte area
           r.pipe.int.df.out  = r.pipe.int.df %>% 
                    group_by(SiteName,V17_CH) %>% 
                   summarise(R_Pipe_area_m = sum(Area.m))
-      
           #out [is.na(out )] <- 0
           #out$P_Pipe_area_m = out$R_Pipe_area_m - out$C_Pipe_area_m
           out.pipe = r.pipe.int
@@ -173,7 +175,7 @@ r.tran.sf <- st_read(dsn=Base,layer="Trans_clip") # multistring
           r.tran$area_m = as.numeric(st_area(r.tran))
           #st_is_valid(r.tran)                   # check valid geometr
           r.tran.df = data.frame(r.tran)        # calculate the length per range 
-          r.tran.df.out  = r.tran.df%>% 
+          r.tran.df.out  = r.tran.df %>% 
             group_by(SiteName,V17_CH) %>% 
             summarise(R_Trans_area_m = sum(area_m))
         
@@ -461,7 +463,7 @@ b.s1 <- st_union(b.s1)
         group_by(SiteName,V17_CH) %>% 
         summarise(R_Road_area_m = sum(Area.m))
     
-## Tweedsmuir herd # Need to break this up into smaller sections then buffer and disolve with ArcMap
+## Tweedsmuir herd # Need to break this up into smaller sections then buffer and disolve within ArcMap
       # HWSR
       b.r2.sf = sf::st_read(dsn = Base , layer ="Tw_HWSR_Rd_bu" )
       st_is_valid(b.r2.sf)
@@ -542,19 +544,13 @@ b.s1 <- st_union(b.s1)
       roads.union = st_cast(roads.union,"POLYGON")
       roads.union = st_union(roads.union)
     
-      ##Join the Roads layers back to the "combined static disturbance"
-    
+      ##Join the Roads layers back to the "combined static disturbance
       # combine into disturbance by layer 
       all.range.out <- left_join(all.range.out,b.df.out)  
       all.range.out[is.na(all.range.out)]<-0      
       
       ## ALL DISTURBANCE: UNION 11 # may need to run this in stand alone R rather than R -studio
-      out10 = st_cast(out10,"POLYGON")
-      
-      
-      ##UP TO HERE
-      
-      
+      out10 = st_cast(out10,"POLYGON") 
       out11 = st_union(out10,roads.union ) ; plot(st_geometry(out11)) 
       out11 = st_cast(out11,"POLYGON")
       rm(out10); rm(b.r1); rm(roads.union)
@@ -570,6 +566,19 @@ st_write(out11,paste(temp.dir,"Static_disturb_TT1.shp",sep = "")) # this writes 
 # Write out the datasheet onto a temp file 
 write.csv(all.range.out,paste(temp.dir,"Static_dist_TT.csv",sep = "") )        
         
+
+
+
+
+
+
+#### UP TO HERE ###########################
+
+
+
+
+
+
 # make memory room!
 rm('out1','out2','out3','out4','out5','out6','out7','r.agr.sf','r.air.sf','r.dam.sf','r.mine.sf')
 rm('r.pipe','r.rail.sf','r.rec.sf','r.tran','r.tran.sf','r.urban.sf','r.wells.sf')
@@ -811,13 +820,27 @@ b.r.c2 <- st_make_valid(b.r.c2)
     st_write(Cut.dec.20002,paste(temp.dir,"Cut.tw.dec.2000.shp",sep = "")) # this writes out as single layer
     st_write(Cut.dec.20102,paste(temp.dir,"Cut.tw.dec.2010.shp",sep = "")) # this writes out as single layer
 
+    
+    ## add the section for each decade (cumulative )
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     ###############
   
-    
-    ## UP TO HERE: 
-    
-    
-    
      # Join the telkwa and Tweedsmuir herd info together   
     r.cut.out.all = rbind(r.cut.out,r.cut.out2) 
     r.cut.decade.all = rbind(cut.decade,cut.decade2)  # keep this for the other decadenal outputs
