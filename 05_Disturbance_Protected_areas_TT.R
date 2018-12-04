@@ -1,10 +1,16 @@
 
 ## Script to read in ESRI data tables and combine outputs
 
+## this script calculates the areas of protection based on the consolidated protected layer (no-overlaps) 
+## you will need to pre-clip the area of protection with the boundary of the widest extent in Arcmap. 
+
+
+##  help files referenced: 
 ##https://gis.stackexchange.com/questions/265863/how-to-read-a-feature-class-in-an-esri-personal-geodatabase-using-r
 ##http://rstudio-pubs-static.s3.amazonaws.com/255550_1c983c8a6a5a45a0aee5a923206f4818.html
 #http://www.rspatial.org/spatial/rst/7-vectmanip.html#spatial-queries
 
+# read in libraries 
 library(dplyr)
 library(rgdal)
 library(sp)
@@ -16,13 +22,13 @@ library(tibble)
 library(tidyr)
 library(sf)
 
+# set work drive 
 #out.dir = "X:/projects/Desktop_Analysis/data/output1/"
 #temp.dir = "X:/projects/Desktop_Analysis/data/temp/"
 
 # to run analysis on C drive: 
 out.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/"
 temp.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Data/"
-
 
 Base= "C:/Temp/TweedTelkwa/Temp/Perkins/Data/Base_data.gdb"
 
