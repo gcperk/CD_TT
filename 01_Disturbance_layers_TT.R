@@ -569,21 +569,12 @@ write.csv(all.range.out,paste(temp.dir,"Static_dist_TT.csv",sep = "") )
 all.range.out = read.csv(paste(temp.dir,"Static_dist_TT.csv",sep = ""), header = TRUE)      
 
 
-
-#### UP TO HERE ###########################
-
-
-
-
-
-
 # make memory room!
-rm('out1','out2','out3','out4','out5','out6','out7','r.agr.sf','r.air.sf','r.dam.sf','r.mine.sf')
-rm('r.pipe','r.rail.sf','r.rec.sf','r.tran','r.tran.sf','r.urban.sf','r.wells.sf')
+#rm('out1','out2','out3','out4','out5','out6','out7','r.agr.sf','r.air.sf','r.dam.sf','r.mine.sf')
+#rm('r.pipe','r.rail.sf','r.rec.sf','r.tran','r.tran.sf','r.urban.sf','r.wells.sf')
 #rm(c('b.r.c0.80','b.r.c0.80.u'))
 
-for (obj in ls()) { message(obj); print(object.size(get(obj)), units='auto') }
-
+#for (obj in ls()) { message(obj); print(object.size(get(obj)), units='auto') }
 
 ################################################################################    
 ################################################################################
@@ -594,16 +585,6 @@ for (obj in ls()) { message(obj); print(object.size(get(obj)), units='auto') }
 # Burns
 # Pests
 
-
-#out9 = st_read(dsn = Base, layer = "Disturb_poly_draft1" )
-#out9 = st_read(paste(out.dir,"Disturb_poly_draft1.shp",sep = ""), package="sf")
-#st_transform(out9,3005)
-#out9 <- st_cast(out9, "POLYGON")
-#st_is_valid(out9)
-#st_make_valid(out9) ; plot(st_geometry(out9))
-#out9 <- st_union(out9)
-
-##################################################################################
 ##################################################################################
 
 ## 8) Cutblock ## this is all years of consolidated cutblock layer and Blairs error checked cutblocks
@@ -672,14 +653,14 @@ b.r.c$TimeSinceCut = 2018-b.r.c$HARVEST_YEAR_ALL; # create new column with age s
       Cut.dec.2000 <- r.cut.df%>% filter(dec.period < 2001 )
       Cut.dec.2010 <- r.cut.df %>% filter(dec.period < 2011 )
 
-      # write out the shapefiles to Data.drive
-      st_write(Cut.dec.1950,paste(temp.dir,"Cut.te.dec.1950.shp",sep = "")) # this writes out as single layer   
-      st_write(Cut.dec.1960,paste(temp.dir,"Cut.te.dec.1960.shp",sep = "")) # this writes out as single layer
-      st_write(Cut.dec.1970,paste(temp.dir,"Cut.te.dec.1970.shp",sep = "")) # this writes out as single layer
-      st_write(Cut.dec.1980,paste(temp.dir,"Cut.te.dec.1980.shp",sep = "")) # this writes out as single layer
-      st_write(Cut.dec.1990,paste(temp.dir,"Cut.te.dec.1990.shp",sep = "")) # this writes out as single layer
-      st_write(Cut.dec.2000,paste(temp.dir,"Cut.te.dec.2000.shp",sep = "")) # this writes out as single layer
-      st_write(Cut.dec.2010,paste(temp.dir,"Cut.te.dec.2010.shp",sep = "")) # this writes out as single layer
+     ## write out the shapefiles to Data.drive
+     # st_write(Cut.dec.1950,paste(temp.dir,"Cut.te.dec.1950.shp",sep = "")) # this writes out as single layer   
+     # st_write(Cut.dec.1960,paste(temp.dir,"Cut.te.dec.1960.shp",sep = "")) # this writes out as single layer
+     # st_write(Cut.dec.1970,paste(temp.dir,"Cut.te.dec.1970.shp",sep = "")) # this writes out as single layer
+    #  st_write(Cut.dec.1980,paste(temp.dir,"Cut.te.dec.1980.shp",sep = "")) # this writes out as single layer
+    #  st_write(Cut.dec.1990,paste(temp.dir,"Cut.te.dec.1990.shp",sep = "")) # this writes out as single layer
+    #  st_write(Cut.dec.2000,paste(temp.dir,"Cut.te.dec.2000.shp",sep = "")) # this writes out as single layer
+    #  st_write(Cut.dec.2010,paste(temp.dir,"Cut.te.dec.2010.shp",sep = "")) # this writes out as single layer
     
       # generate consolidated outputs overtime per decage 
       c.1950 <- st_union(Cut.dec.1950) # empty
@@ -814,14 +795,14 @@ b.r.c2 <- st_make_valid(b.r.c2)
     Cut.dec.20002 <- r.cut.df2%>% filter(dec.period < 2001 )
     Cut.dec.20102 <- r.cut.df2 %>% filter(dec.period < 2011 )
     
-    # write out the shapefiles to Data.drive
-    st_write(Cut.dec.19502,paste(temp.dir,"Cut.tw.dec.1950.shp",sep = "")) # this writes out as single layer   
-    st_write(Cut.dec.19602,paste(temp.dir,"Cut.tw.dec.1960.shp",sep = "")) # this writes out as single layer
-    st_write(Cut.dec.19702,paste(temp.dir,"Cut.tw.dec.1970.shp",sep = "")) # this writes out as single layer
-    st_write(Cut.dec.19802,paste(temp.dir,"Cut.tw.dec.1980.shp",sep = "")) # this writes out as single layer
-    st_write(Cut.dec.19902,paste(temp.dir,"Cut.tw.dec.1990.shp",sep = "")) # this writes out as single layer
-    st_write(Cut.dec.20002,paste(temp.dir,"Cut.tw.dec.2000.shp",sep = "")) # this writes out as single layer
-    st_write(Cut.dec.20102,paste(temp.dir,"Cut.tw.dec.2010.shp",sep = "")) # this writes out as single layer
+    ## write out the shapefiles to Data.drive
+    #st_write(Cut.dec.19502,paste(temp.dir,"Cut.tw.dec.1950.shp",sep = "")) # this writes out as single layer   
+    #st_write(Cut.dec.19602,paste(temp.dir,"Cut.tw.dec.1960.shp",sep = "")) # this writes out as single layer
+    #st_write(Cut.dec.19702,paste(temp.dir,"Cut.tw.dec.1970.shp",sep = "")) # this writes out as single layer
+    #st_write(Cut.dec.19802,paste(temp.dir,"Cut.tw.dec.1980.shp",sep = "")) # this writes out as single layer
+    #st_write(Cut.dec.19902,paste(temp.dir,"Cut.tw.dec.1990.shp",sep = "")) # this writes out as single layer
+    #st_write(Cut.dec.20002,paste(temp.dir,"Cut.tw.dec.2000.shp",sep = "")) # this writes out as single layer
+    #st_write(Cut.dec.20102,paste(temp.dir,"Cut.tw.dec.2010.shp",sep = "")) # this writes out as single layer
     
     ## add the section for each decade (cumulative )
     # generate consolidated outputs overtime per decage 
@@ -900,6 +881,7 @@ b.r.c2 <- st_make_valid(b.r.c2)
     # Join the telkwa and Tweedsmuir herd info together   
     r.cut.out.all = rbind(r.cut.out.te,r.cut.out.tw) 
 
+        
     # combine into disturbance by layer 
     all.range.out <- left_join(all.range.out,r.cut.out.all)  
     all.range.out[is.na(all.range.out)]<-0
@@ -920,7 +902,10 @@ b.r.0<- st_zm(b.r.0 ,drop = TRUE) # this is a linear feature so need to buffer t
 b.r.0$TimeSinceBurn = 2018-b.r.0$FIRE_YEAR #; plot(b.r.0$Shape)
 b.r.0 <- st_intersection(all.range,b.r.0) #; st_is_valid(b.r.0)
 b.r.0 <- st_cast(b.r.0,"POLYGON")
-b.r.0$area.m = as.numeric(st_area(b.r.0))
+
+plot(st_geometry(b.r.0), col = 'red')
+plot(st_geometry(all.range),add = T)
+#b.r.0$area.m = as.numeric(st_area(b.r.0))
 #head(b.r.0)
 
     # burns 0-40 years 
@@ -929,6 +914,7 @@ b.r.0$area.m = as.numeric(st_area(b.r.0))
     b.r.0.40 <- st_cast(b.r.0.40,"POLYGON")
     b.r.0.40 = st_make_valid( b.r.0.40 )
     b.r.0.40 = st_intersection(all.range,b.r.0.40)
+    
     b.r.0.40$area.m = as.numeric(st_area( b.r.0.40 ))
     b.r.0.40.df = data.frame(b.r.0.40)        # calculate the length per range 
     b.r.0.40.out  =  b.r.0.40.df%>% 
@@ -941,86 +927,146 @@ b.r.0$area.m = as.numeric(st_area(b.r.0))
     b.r.0.80 <- st_cast(b.r.0.80,"POLYGON")
     b.r.0.80 = st_make_valid( b.r.0.80 )
     b.r.0.80 = st_intersection(all.range,b.r.0.80)
+    
     b.r.0.80$area.m = as.numeric(st_area(b.r.0.80))
     b.r.0.80.df = data.frame(b.r.0.80)        # calculate the length per range 
     b.r.0.80.out  =  b.r.0.80.df%>% 
       group_by(SiteName,V17_CH) %>% 
       summarise(R_Burn080_m2 = sum(area.m))
     
-    r.burn.out = merge(b.r.0.40.out,b.r.0.80.out )
+    r.burn.out = merge(b.r.0.40.out,b.r.0.80.out )  # keep this to add to other layers 
+    r.burn.out = left_join(Herd_key_detail, r.burn.out) # add to the total of all range habitats
     # combine into disturbance by layer (from 0 - 80 years)
-    all.range.out <- left_join( r.cut.out.all,r.burn.out)## TEMPORALY LINE UNTIL FIXEED 
-    
-    
-    ## UP TO HERE ############
-    
-    all.range.out <- left_join(all.range.out,r.burn.out)  
-    all.range.out[is.na(all.range.out)]<-0
-    #write.csv(all.range.out,paste(temp.dir,"Temp_output_summary.csv",sep =""))  
-    
+   
     # split burns into decades (using all the entire data set)
-    b.r.00.df <-b.r.0.80
-  
-          # add a column to differentiate the age brackets of cutblocks 
-          b.r.00.df <- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1940 & FIRE_YEAR <= 1949,1940,0))
-          b.r.00.df <- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1950 & FIRE_YEAR <= 1959,1950,dec.period))
-          b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1960 & FIRE_YEAR <= 1969,1960,dec.period))
-          b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1970 & FIRE_YEAR <= 1979,1970,dec.period))   
-          b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1980 & FIRE_YEAR <= 1989,1980,dec.period))   
-          b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1990 & FIRE_YEAR <= 1999,1990,dec.period)) 
-          b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 2000 & FIRE_YEAR <= 2009,2000,dec.period))   
-          b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 2010 & FIRE_YEAR <= 2019,2010,dec.period)) 
-        
-          b.r.00.df[b.r.00.df$dec.period == 0,]
-          b.r.00.df = b.r.00.df %>% filter(dec.period>0)
-          unique(b.r.00.df$dec.period)
-          
-          #head(b.r.00.df$dec.period)
-          # write out the decade data to table. 
-          Burn.dec = b.r.00.df %>% group_by(SiteName,V17_CH,dec.period ) %>% summarise(R_burn0_80_m2 = sum(area.m))
-          Burn.dec.df = as.data.frame(Burn.dec)
-          Burn.dec.df <- Burn.dec.df %>% dplyr::select(c(SiteName,V17_CH, dec.period, R_burn0_80_m2))
-          
-          # generate cumulative burn disturbance shapefiles to be added sequentially to "static Disturbance" 
-          head( b.r.0.80)
-          Burn.dec.1950 <- Burn.dec %>% filter(dec.period == 1950)
-          Burn.dec.1960 <- Burn.dec %>% filter(dec.period < 1961 )
-          Burn.dec.1970 <- Burn.dec %>% filter(dec.period < 1971 )
-          Burn.dec.1980 <- Burn.dec %>% filter(dec.period < 1981 )
-          Burn.dec.1990 <- Burn.dec %>% filter(dec.period < 1991 )
-          Burn.dec.2000 <- Burn.dec %>% filter(dec.period < 2001 )
-          Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
-         # Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
-          
-          # write out the shapefiles to Data.drive
-          st_write(Burn.dec.1950,paste(temp.dir,"Burn.dec.1950.shp",sep = "")) # this writes out as single layer   
-          st_write(Burn.dec.1960,paste(temp.dir,"Burn.dec.1960.shp",sep = "")) # this writes out as single layer
-          st_write(Burn.dec.1970,paste(temp.dir,"Burn.dec.1970.shp",sep = "")) # this writes out as single layer
-          st_write(Burn.dec.1980,paste(temp.dir,"Burn.dec.1980.shp",sep = "")) # this writes out as single layer
-          st_write(Burn.dec.1990,paste(temp.dir,"Burn.dec.1990.shp",sep = "")) # this writes out as single layer
-          st_write(Burn.dec.2000,paste(temp.dir,"Burn.dec.2000.shp",sep = "")) # this writes out as single layer
-          st_write(Burn.dec.2010,paste(temp.dir,"Burn.dec.2010.shp",sep = "")) # this writes out as single layer
-          
-          
-          
-          
-          
-          ### ADDD THE DECADE SECTIONS HERE 
-          
-          
-          
-          
-          
-###########################################
+    b.r.00.df <- b.r.0[b.r.0$TimeSinceBurn <81,];
+    
+    # add a column to differentiate the age brackets of cutblocks 
+    b.r.00.df <- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1940 & FIRE_YEAR <= 1949,1940,0))
+    b.r.00.df <- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1950 & FIRE_YEAR <= 1959,1950,dec.period))
+    b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1960 & FIRE_YEAR <= 1969,1960,dec.period))
+    b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1970 & FIRE_YEAR <= 1979,1970,dec.period))   
+    b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1980 & FIRE_YEAR <= 1989,1980,dec.period))   
+    b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 1990 & FIRE_YEAR <= 1999,1990,dec.period)) 
+    b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 2000 & FIRE_YEAR <= 2009,2000,dec.period))   
+    b.r.00.df<- mutate(b.r.00.df,dec.period = ifelse(FIRE_YEAR >= 2010 & FIRE_YEAR <= 2019,2010,dec.period)) 
+    
+    #b.r.00.df[b.r.00.df$dec.period == 0,] # error check to see what is over 80 years old
+    b.r.00.df = b.r.00.df %>% filter(dec.period>0)
+    #unique(b.r.00.df$dec.period) # error check 
+    
+    # generate cumulative burn disturbance shapefiles to be added sequentially to "static Disturbance" 
+    Burn.dec = b.r.00.df
+    
+    Burn.dec.1950 <- Burn.dec %>% filter(dec.period == 1950)
+    Burn.dec.1960 <- Burn.dec %>% filter(dec.period < 1961 )
+    Burn.dec.1970 <- Burn.dec %>% filter(dec.period < 1971 )
+    Burn.dec.1980 <- Burn.dec %>% filter(dec.period < 1981 )
+    Burn.dec.1990 <- Burn.dec %>% filter(dec.period < 1991 )
+    Burn.dec.2000 <- Burn.dec %>% filter(dec.period < 2001 )
+    Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
+    # Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
+    
+    ## write out the shapefiles to Data.drive
+    #st_write(Burn.dec.1950,paste(temp.dir,"Burn.dec.1950.shp",sep = "")) # this writes out as single layer   
+    #st_write(Burn.dec.1960,paste(temp.dir,"Burn.dec.1960.shp",sep = "")) # this writes out as single layer
+    #st_write(Burn.dec.1970,paste(temp.dir,"Burn.dec.1970.shp",sep = "")) # this writes out as single layer
+    #st_write(Burn.dec.1980,paste(temp.dir,"Burn.dec.1980.shp",sep = "")) # this writes out as single layer
+    #st_write(Burn.dec.1990,paste(temp.dir,"Burn.dec.1990.shp",sep = "")) # this writes out as single layer
+    #st_write(Burn.dec.2000,paste(temp.dir,"Burn.dec.2000.shp",sep = "")) # this writes out as single layer
+    #st_write(Burn.dec.2010,paste(temp.dir,"Burn.dec.2010.shp",sep = "")) # this writes out as single layer
+    
 
-# join the cutlock with burn decade data. 
-# write out the data table: 
-          
-all.temp.data = left_join(r.cut.decade.all,Burn.dec.df ,by = c("SiteName", "V17_CH", "dec.period"))
-all.temp.data[is.na(all.temp.data)]<- 0 
+    ## add the section for each decade (cumulative )
+    # generate consolidated outputs overtime per decage 
+    b.1950 <- st_union(Burn.dec.1950) # empty
+      b.1950 <- st_cast(b.1950,"POLYGON") #; st_is_valid(b.1950)
+      b.1950 = st_intersection(all.range, b.1950) ; b.1950 <- st_make_valid(b.1950)
+      #b.1950 <- st_cast(b.1950,"POLYGON")
+      b.1950$area.m = as.numeric(st_area(b.1950))
+      b.1950.df <- as.data.frame(b.1950) 
+      b.1950.df.out <-  b.1950.df %>% 
+        group_by(SiteName,V17_CH ) %>% 
+        summarise(R_burn_1950_m2 = sum(area.m))
+      r.burn.out.total = left_join(r.burn.out, b.1950.df.out) # add to the data summary
+      
+    b.1960 <- st_union(Burn.dec.1960)
+      b.1960 <- st_cast(b.1960,"POLYGON") #; st_is_valid(c.1960)
+      b.1960 = st_intersection(all.range, b.1960) ; b.1960 <- st_make_valid(b.1960)
+     # b.1960 <- st_cast(b.1960,"POLYGON")
+      b.1960$area.m = as.numeric(st_area(b.1960))
+      b.1960.df <- as.data.frame(b.1960) 
+      b.1960.df.out <-  b.1960.df %>% 
+        group_by(SiteName,V17_CH ) %>% 
+        summarise(R_burn_1960_m2 = sum(area.m))
+      r.burn.out.total = left_join(r.burn.out,b.1960.df.out) # add to the data summary
+    
+    b.1970 <- st_union(Burn.dec.1970)
+      b.1970 <- st_cast(b.1970,"POLYGON") #; st_is_valid(c.1960)
+      b.1970 = st_intersection(all.range, b.1970) ; b.1970 <- st_make_valid(b.1970)
+      #b.1970 <- st_cast(b.1970,"POLYGON")
+      b.1970$area.m = as.numeric(st_area(b.1970))
+      b.1970.df <- as.data.frame(b.1970) 
+      b.1970.df.out <-  b.1970.df %>% 
+        group_by(SiteName,V17_CH ) %>% 
+        summarise(R_burn_1970_m2 = sum(area.m))
+      r.burn.out.total = left_join(r.burn.out,b.1970.df.out) # add to the data summary
+    
+    b.1980 <- st_union(Burn.dec.1980)
+        b.1980 <- st_cast(b.1980,"POLYGON") #; st_is_valid(c.1960)
+        b.1980 = st_intersection(all.range, b.1980) #; b.1980 <- st_make_valid(b.1980)
+        #b.1980 <- st_cast(b.1980,"POLYGON") #; st_is_valid(b.1980)
+        b.1980$area.m = as.numeric(st_area(b.1980))
+        b.1980.df <- as.data.frame(b.1980) 
+        b.1980.df.out <-  b.1980.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_burn_1980_m2 = sum(area.m))
+        r.burn.out.total = left_join(r.burn.out,b.1980.df.out) # add to the data summary
+    
+    b.1990 <- st_union(Burn.dec.1990)
+        b.1990 <- st_cast(b.1990,"POLYGON") #; st_is_valid(c.1960)
+        b.1990 = st_intersection(all.range, b.1990) #; b.1990 <- st_make_valid(c.1990)
+        #b.1990 <- st_cast(b.1990,"POLYGON")
+        b.1990$area.m = as.numeric(st_area(b.1990))
+        b.1990.df <- as.data.frame(b.1990) 
+        b.1990.df.out <-  b.1990.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_burn_1990_m2 = sum(area.m))
+        r.burn.out.total = left_join(r.burn.out,b.1990.df.out) # add to the data summary
+    
+    b.2000 <- st_union(Burn.dec.2000)
+        b.2000 <- st_cast(b.2000,"POLYGON") #; st_is_valid(c.2000)
+        b.2000 = st_intersection(all.range, b.2000) ; b.2000 <- st_make_valid(b.2000)
+        #b.2000 <- st_cast(c.2000,"POLYGON")
+        b.2000$area.m = as.numeric(st_area(b.2000))
+        b.2000.df <- as.data.frame(b.2000) 
+        b.2000.df.out <-  b.2000.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_burn_2000_m2 = sum(area.m))
+    r.burn.out.total = left_join(r.burn.out.total,b.2000.df.out) # add to the data summary
+    
+    b.2010 <- st_union(Burn.dec.2010)
+      b.2010 <- st_cast(b.2010,"POLYGON") #; st_is_valid(b.2010); b.2010 <- st_make_valid(b.2010)
+      b.2010 = st_intersection(all.range, b.2010) 
+      #head(b.2010)
+      #b.2010 <- st_cast(b.2010,"POLYGON")
+      b.2010$area.m = as.numeric(st_area(b.2010))
+      b.2010.df <- as.data.frame(b.2010) 
+      b.2010.df.out <-  b.2010.df %>% 
+        group_by(SiteName,V17_CH ) %>% 
+        summarise(R_burn_2010_m2 = sum(area.m))
+      r.burn.out.total = left_join(r.burn.out.total,b.2010.df.out) # add to the data summary
+    
+      
+      ###############
+      
+      r.burn.out.total
 
-# write.csv(all.temp.data,paste(temp.dir,"Temp_cut_burn_dec_outputs.csv",sep =""))  
-
+    # combine into disturbance by layer 
+    all.range.out <- left_join(all.range.out, r.burn.out.total)  
+    all.range.out[is.na(all.range.out)]<-0
+      #write.csv(all.range.out,paste(temp.dir,"Temp_output_summary.csv",sep =""))  
+    
 ############################################
 ### PEST 
 # this needs pre-processing in arcmap - select ibm and ibs species - split into two sections as this is 
@@ -1031,73 +1077,264 @@ r.pest.tw <-  st_read(dsn = Base, layer ="Pest_clip_Tw_IBMIBS") #; plot(st_geome
 r.pest <- r.pest.te
 r.pest<- st_zm(r.pest ,drop = TRUE) # this is a linear feature so need to buffer to estimate area calcs
 r.pest = st_cast(r.pest,"POLYGON")
-st_make_valid(r.pest)
+r.pest <- st_make_valid(r.pest)
+r.pest$TimeSincePest = 2018-r.pest$CAPTURE_YEAR
+r.pest<- st_intersection(all.range,r.pest) #; st_is_valid(b.r.0)
+r.pest <- st_cast(r.pest,"POLYGON")
+#plot(st_geometry(r.pest), col = 'red')
+#plot(st_geometry(all.range),add = T)
 
-## FIX THE DECADE THING HERE AND BELOW 
-
-        # Range 
-        r.pest <-  st_intersection(all.range,r.pest) #; st_is_valid(r.pest)
-        r.pest$area.m = as.numeric(st_area(r.pest)) 
-        st_is_valid(r.pest)
-        st_make_valid(r.pest)
-        
-        r.pest.df = r.pest
-        
-        # add decade data   # add a column to differentiate the age brackets of pest capture
-        r.pest.df<- r.pest.df %>% mutate(dec.period = ifelse(CAPTURE_YEAR >= 1960 & CAPTURE_YEAR <= 1969,1960,0))
-        r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 1970 & CAPTURE_YEAR <= 1979,1970,dec.period))
-        r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 1980 & CAPTURE_YEAR <= 1989,1980,dec.period))
-        r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 1990 & CAPTURE_YEAR <= 1999,1990,dec.period))
-        r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 2000 & CAPTURE_YEAR <= 2009,2000,dec.period))
-        r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 2010 & CAPTURE_YEAR <= 2018,2010,dec.period))
-   
-        #sort(unique(r.pest$CAPTURE_YEAR)) 
-
-        # output tables: 
-        # work with the data frames
-        r.pest.df.df =  as.data.frame(r.pest.df)
-        
-        # output the amount of burns by range (all years (0-80))  
-        r.pest.df.out  = r.pest.df.df %>% 
-          group_by(SiteName, V17_CH) %>% summarise(R_pest_m2 = sum(area.m))
-        
-        #output the amount of burns per decade (all years) 
-        r.pest.df.out.temp  =   r.pest.df.df %>% group_by(SiteName, V17_CH,dec.period) %>% summarise(R_pest_dec_m2 = sum(area.m))
+    # burns 0-40 years 
+    r.p.0.40 = r.pest[r.pest$TimeSincePest <41,]; #sort(unique(b.r.0$TimeSinceBurn)) 
+    r.p.0.40 = st_union(r.p.0.40)
+    r.p.0.40 <- st_cast(r.p.0.40,"POLYGON") #; st_is_valid(r.p.0.40)
+    #r.p.0.40 = st_make_valid( r.p.0.40)
+    r.p.0.40= st_intersection(all.range,r.p.0.40)
+    r.p.0.40$area.m = as.numeric(st_area(r.p.0.40))
+    r.p.0.40.df = data.frame(r.p.0.40)        # calculate the length per range 
+    r.p.0.40.out  =  r.p.0.40.df%>% 
+      group_by(SiteName,V17_CH) %>% 
+      summarise(R_Pest040_m2 = sum(area.m))
+    
+    r.pest.df = r.pest
+    
+    # add decade data   # add a column to differentiate the age brackets of pest capture
+    r.pest.df<- r.pest.df %>% mutate(dec.period = ifelse(CAPTURE_YEAR >= 1960 & CAPTURE_YEAR <= 1969,1960,0))
+    r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 1970 & CAPTURE_YEAR <= 1979,1970,dec.period))
+    r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 1980 & CAPTURE_YEAR <= 1989,1980,dec.period))
+    r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 1990 & CAPTURE_YEAR <= 1999,1990,dec.period))
+    r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 2000 & CAPTURE_YEAR <= 2009,2000,dec.period))
+    r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 2010 & CAPTURE_YEAR <= 2018,2010,dec.period))
+    
+    # Generate the cumulative pest damage into decades to add to "static Disturbance" 
+    #Pest.dec.1950 <- r.pest.df %>% filter(dec.period == 1950)
+    Pest.dec.1960 <- r.pest.df %>% filter(dec.period < 1961 )
+    Pest.dec.1970 <- r.pest.df %>% filter(dec.period < 1971 )
+    Pest.dec.1980 <- r.pest.df %>% filter(dec.period < 1981 )
+    Pest.dec.1990 <- r.pest.df %>% filter(dec.period < 1991 )
+    Pest.dec.2000 <- r.pest.df %>% filter(dec.period < 2001 )
+    Pest.dec.2010 <- r.pest.df %>% filter(dec.period < 2011 )
+    # Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
+    
+    ## output shapefiles. 
+    ## write out the shapefiles to Data.drive
+    #st_write(Pest.dec.1950 ,paste(temp.dir,"Pest.te.dec.1950.shp",sep = "")) # this writes out as single layer   
+    #st_write(Pest.dec.1960 ,paste(temp.dir,"Pest.te.dec.1960.shp",sep = "")) # this writes out as single layer
+    #st_write(Pest.dec.1970 ,paste(temp.dir,"Pest.te.dec.1970.shp",sep = "")) # this writes out as single layer
+    #st_write(Pest.dec.1980 ,paste(temp.dir,"Pest.te.dec.1980.shp",sep = "")) # this writes out as single layer
+    #st_write(Pest.dec.1990,paste(temp.dir,"Pest.te.dec.1990.shp",sep = "")) # this writes out as single layer
+    #st_write(Pest.dec.2000,paste(temp.dir,"Pest.te.dec.2000.shp",sep = "")) # this writes out as single layer
+    #st_write(Pest.dec.2010,paste(temp.dir,"Pest.te.dec.2010.shp",sep = "")) # this writes out as single layer
+    
+    
+    ## add the section for each decade (cumulative )
+    # generate consolidated outputs overtime per decage 
+    #p.1950 <- st_union(Pest.dec.1950) # empty
        
-         #output the amount of burn per decade per species (all years) 
-        r.pest.df.out.type  = r.pest.df.df %>% group_by(SiteName,PEST_SPECIES_CODE,dec.period) %>% summarise(R_pest_type_m2 = sum(area.m))
-        
-        # Generate the cumulative pest damage into decades to add to "static Disturbance" 
-        #Pest.dec.1950 <- r.pest.df %>% filter(dec.period == 1950)
-        Pest.dec.1960 <- r.pest.df %>% filter(dec.period < 1961 )
-        Pest.dec.1970 <- r.pest.df %>% filter(dec.period < 1971 )
-        Pest.dec.1980 <- r.pest.df %>% filter(dec.period < 1981 )
-        Pest.dec.1990 <- r.pest.df %>% filter(dec.period < 1991 )
-        Pest.dec.2000 <- r.pest.df %>% filter(dec.period < 2001 )
-        Pest.dec.2010 <- r.pest.df %>% filter(dec.period < 2011 )
-        # Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
-        
-         # output shapefiles. 
-        # write out the shapefiles to Data.drive
-        st_write(Pest.dec.1950 ,paste(temp.dir,"Pest.te.dec.1950.shp",sep = "")) # this writes out as single layer   
-        st_write(Pest.dec.1960 ,paste(temp.dir,"Pest.te.dec.1960.shp",sep = "")) # this writes out as single layer
-        st_write(Pest.dec.1970 ,paste(temp.dir,"Pest.te.dec.1970.shp",sep = "")) # this writes out as single layer
-        st_write(Pest.dec.1980 ,paste(temp.dir,"Pest.te.dec.1980.shp",sep = "")) # this writes out as single layer
-        st_write(Pest.dec.1990,paste(temp.dir,"Pest.te.dec.1990.shp",sep = "")) # this writes out as single layer
-        st_write(Pest.dec.2000,paste(temp.dir,"Pest.te.dec.2000.shp",sep = "")) # this writes out as single layer
-        st_write(Pest.dec.2010,paste(temp.dir,"Pest.te.dec.2010.shp",sep = "")) # this writes out as single layer
-        
-        
-        ## FIX THIS BELOW 
-        
-        
+    p.1960 <- st_union(Pest.dec.1960)
+        p.1960 <- st_cast(p.1960,"POLYGON") #; st_is_valid(c.1960)
+        p.1960 = st_intersection(all.range, p.1960) ; p.1960 <- st_make_valid(p.1960)
+        p.1960$area.m = as.numeric(st_area(p.1960))
+        p.1960.df <- as.data.frame(p.1960) 
+        p.1960.df.out <-  p.1960.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_pest_1960_m2 = sum(area.m))
+    r.pest.out.total = left_join(r.p.0.40.out,b.1960.df.out) # add to the data summary
+    
+    p.1970 <- st_union(Pest.dec.1970)
+        p.1970 <- st_cast(p.1970,"POLYGON") #; st_is_valid(c.1960)
+        p.1970 = st_intersection(all.range, p.1970) ; p.1970 <- st_make_valid(p.1970)
+        #b.1970 <- st_cast(b.1970,"POLYGON")
+        p.1970$area.m = as.numeric(st_area(p.1970))
+        p.1970.df <- as.data.frame(p.1970) 
+        p.1970.df.out <-  p.1970.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_pest_1970_m2 = sum(area.m))
+    r.pest.out.total = left_join( r.pest.out.total,p.1970.df.out) # add to the data summary
+    
+    p.1980 <- st_union(Pest.dec.1980)
+        p.1980 <- st_cast(p.1980,"POLYGON") #; st_is_valid(c.1960)
+        p.1980 = st_intersection(all.range, p.1980) #; b.1980 <- st_make_valid(b.1980)
+        #b.1980 <- st_cast(b.1980,"POLYGON") #; st_is_valid(b.1980)
+        p.1980$area.m = as.numeric(st_area(p.1980))
+        p.1980.df <- as.data.frame(p.1980) 
+        p.1980.df.out <-  p.1980.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_pest_1980_m2 = sum(area.m))
+    r.pest.out.total = left_join(r.pest.out.total,p.1980.df.out) # add to the data summary
+    
+    p.1990 <- st_union(Pest.dec.1990)
+        p.1990 <- st_cast(p.1990,"POLYGON") #; st_is_valid(c.1960)
+        p.1990 = st_intersection(all.range, p.1990) #; b.1990 <- st_make_valid(c.1990)
+        #p.1990 <- st_cast(b.1990,"POLYGON")
+        p.1990$area.m = as.numeric(st_area(p.1990))
+        p.1990.df <- as.data.frame(p.1990) 
+        p.1990.df.out <-  p.1990.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_pest_1990_m2 = sum(area.m))
+    r.pest.out.total = left_join(r.pest.out.total,p.1990.df.out) # add to the data summary
+    
+    p.2000 <- st_union(Pest.dec.2000)
+        p.2000 <- st_cast(p.2000,"POLYGON") #; st_is_valid(c.2000)
+        p.2000 = st_intersection(all.range, p.2000) ; p.2000 <- st_make_valid(p.2000)
+        #p.2000 <- st_cast(c.2000,"POLYGON")
+        p.2000$area.m = as.numeric(st_area(p.2000))
+        p.2000.df <- as.data.frame(p.2000) 
+        p.2000.df.out <-  p.2000.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_pest_2000_m2 = sum(area.m))
+    r.pest.out.total = left_join(r.pest.out.total,p.2000.df.out) # add to the data summary
+    
+    p.2010 <- st_union(Pest.dec.2010)
+        p.2010 <- st_cast(p.2010,"POLYGON") #; st_is_valid(b.2010); b.2010 <- st_make_valid(b.2010)
+        p.2010 = st_intersection(all.range, p.2010) 
+        #head(b.2010)
+        #p.2010 <- st_cast(b.2010,"POLYGON")
+        p.2010$area.m = as.numeric(st_area(p.2010))
+        p.2010.df <- as.data.frame(p.2010) 
+        p.2010.df.out <-  p.2010.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_pest_2010_m2 = sum(area.m))
+    r.pest.out.total = left_join(r.pest.out.total,p.2010.df.out) # add to the data summary
+
+    r.pest.out.total.te = r.pest.out.total
 
 # Tweedsmuir 
 r.pest2 <- r.pest.tw
 r.pest2<- st_zm(r.pest2 ,drop = TRUE) # this is a linear feature so need to buffer to estimate area calcs
-r.pest2 = st_cast(r.pest2,"POLYGON")
-st_make_valid(r.pest2)
-        
+r.pest2 = st_cast(r.pest2,"POLYGON"); st_is_valid(r.pest2)
+#r.pest2 = st_make_valid(r.pest2)
+r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
+#plot(st_geometry(r.pest2), col = 'red') ; plot(st_geometry(all.range),add = T)
+
+
+
+
+
+      ## UP TO HERE ##############
+
+
+
+
+
+
+      # burns 0-40 years 
+      r.p.0.402 = r.pest2[r.pest2$TimeSincePest <41,]; #sort(unique(b.r.0$TimeSinceBurn)) 
+      r.p.0.402 = st_union(r.p.0.402)
+      
+      r.p.0.402 <- st_cast(r.p.0.402,"POLYGON") #; st_is_valid(r.p.0.40)
+      r.p.0.402= st_intersection(all.range,r.p.0.402)
+      r.p.0.402$area.m = as.numeric(st_area(r.p.0.402))
+      r.p.0.402.df = data.frame(r.p.0.402)        # calculate the length per range 
+      r.p.0.402.out  =  r.p.0.402.df%>% 
+        group_by(SiteName,V17_CH) %>% 
+        summarise(R_Pest040_m2 = sum(area.m))
+      
+      r.pest.df2 = r.pest2
+      
+      # add decade data   # add a column to differentiate the age brackets of pest capture
+      r.pest.df2<- r.pest.df2 %>% mutate(dec.period = ifelse(CAPTURE_YEAR >= 1960 & CAPTURE_YEAR <= 1969,1960,0))
+      r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 1970 & CAPTURE_YEAR <= 1979,1970,dec.period))
+      r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 1980 & CAPTURE_YEAR <= 1989,1980,dec.period))
+      r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 1990 & CAPTURE_YEAR <= 1999,1990,dec.period))
+      r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 2000 & CAPTURE_YEAR <= 2009,2000,dec.period))
+      r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 2010 & CAPTURE_YEAR <= 2018,2010,dec.period))
+      
+      # Generate the cumulative pest damage into decades to add to "static Disturbance" 
+      Pest.dec.19502 <- r.pest.df2 %>% filter(dec.period == 1950)
+      Pest.dec.19602 <- r.pest.df2 %>% filter(dec.period < 1961 )
+      Pest.dec.19702 <- r.pest.df2 %>% filter(dec.period < 1971 )
+      Pest.dec.19802 <- r.pest.df2 %>% filter(dec.period < 1981 )
+      Pest.dec.19902 <- r.pest.df2 %>% filter(dec.period < 1991 )
+      Pest.dec.20002 <- r.pest.df2 %>% filter(dec.period < 2001 )
+      Pest.dec.20102 <- r.pest.df2 %>% filter(dec.period < 2011 )
+      # Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
+      
+      # output shapefiles. 
+      # write out the shapefiles to Data.drive
+      st_write(Pest.dec.19502 ,paste(temp.dir,"Pest.tw.dec.1950.shp",sep = "")) # this writes out as single layer   
+      st_write(Pest.dec.19602 ,paste(temp.dir,"Pest.tw.dec.1960.shp",sep = "")) # this writes out as single layer
+      st_write(Pest.dec.19702 ,paste(temp.dir,"Pest.tw.dec.1970.shp",sep = "")) # this writes out as single layer
+      st_write(Pest.dec.19802 ,paste(temp.dir,"Pest.tw.dec.1980.shp",sep = "")) # this writes out as single layer
+      st_write(Pest.dec.19902,paste(temp.dir,"Pest.tw.dec.1990.shp",sep = "")) # this writes out as single layer
+      st_write(Pest.dec.20002,paste(temp.dir,"Pest.tw.dec.2000.shp",sep = "")) # this writes out as single layer
+      st_write(Pest.dec.20102,paste(temp.dir,"Pest.tw.dec.2010.shp",sep = "")) # this writes out as single layer
+      
+
+## add the section for each decade (cumulative )
+# generate consolidated outputs overtime per decage 
+
+      #p.1950 <- st_union(Pest.dec.1950) # empty
+
+      # check if there is a 1950;s 
+      
+p.1960 <- st_union(Pest.dec.1960)
+p.1960 <- st_cast(p.1960,"POLYGON") #; st_is_valid(c.1960)
+p.1960 = st_intersection(all.range, p.1960) ; p.1960 <- st_make_valid(p.1960)
+p.1960$area.m = as.numeric(st_area(p.1960))
+p.1960.df <- as.data.frame(p.1960) 
+p.1960.df.out <-  p.1960.df %>% 
+  group_by(SiteName,V17_CH ) %>% 
+  summarise(R_pest_1960_m2 = sum(area.m))
+r.pest.out.total = left_join(r.p.0.40.out,b.1960.df.out) # add to the data summary
+
+p.1970 <- st_union(Pest.dec.1970)
+p.1970 <- st_cast(p.1970,"POLYGON") #; st_is_valid(c.1960)
+p.1970 = st_intersection(all.range, p.1970) ; p.1970 <- st_make_valid(p.1970)
+#b.1970 <- st_cast(b.1970,"POLYGON")
+p.1970$area.m = as.numeric(st_area(p.1970))
+p.1970.df <- as.data.frame(p.1970) 
+p.1970.df.out <-  p.1970.df %>% 
+  group_by(SiteName,V17_CH ) %>% 
+  summarise(R_pest_1970_m2 = sum(area.m))
+r.pest.out.total = left_join( r.pest.out.total,p.1970.df.out) # add to the data summary
+
+p.1980 <- st_union(Pest.dec.1980)
+p.1980 <- st_cast(p.1980,"POLYGON") #; st_is_valid(c.1960)
+p.1980 = st_intersection(all.range, p.1980) #; b.1980 <- st_make_valid(b.1980)
+#b.1980 <- st_cast(b.1980,"POLYGON") #; st_is_valid(b.1980)
+p.1980$area.m = as.numeric(st_area(p.1980))
+p.1980.df <- as.data.frame(p.1980) 
+p.1980.df.out <-  p.1980.df %>% 
+  group_by(SiteName,V17_CH ) %>% 
+  summarise(R_pest_1980_m2 = sum(area.m))
+r.pest.out.total = left_join(r.pest.out.total,p.1980.df.out) # add to the data summary
+
+p.1990 <- st_union(Pest.dec.1990)
+p.1990 <- st_cast(p.1990,"POLYGON") #; st_is_valid(c.1960)
+p.1990 = st_intersection(all.range, p.1990) #; b.1990 <- st_make_valid(c.1990)
+#p.1990 <- st_cast(b.1990,"POLYGON")
+p.1990$area.m = as.numeric(st_area(p.1990))
+p.1990.df <- as.data.frame(p.1990) 
+p.1990.df.out <-  p.1990.df %>% 
+  group_by(SiteName,V17_CH ) %>% 
+  summarise(R_pest_1990_m2 = sum(area.m))
+r.pest.out.total = left_join(r.pest.out.total,p.1990.df.out) # add to the data summary
+
+p.2000 <- st_union(Pest.dec.2000)
+p.2000 <- st_cast(p.2000,"POLYGON") #; st_is_valid(c.2000)
+p.2000 = st_intersection(all.range, p.2000) ; p.2000 <- st_make_valid(p.2000)
+#p.2000 <- st_cast(c.2000,"POLYGON")
+p.2000$area.m = as.numeric(st_area(p.2000))
+p.2000.df <- as.data.frame(p.2000) 
+p.2000.df.out <-  p.2000.df %>% 
+  group_by(SiteName,V17_CH ) %>% 
+  summarise(R_pest_2000_m2 = sum(area.m))
+r.pest.out.total = left_join(r.pest.out.total,p.2000.df.out) # add to the data summary
+
+p.2010 <- st_union(Pest.dec.2010)
+p.2010 <- st_cast(p.2010,"POLYGON") #; st_is_valid(b.2010); b.2010 <- st_make_valid(b.2010)
+p.2010 = st_intersection(all.range, p.2010) 
+#head(b.2010)
+#p.2010 <- st_cast(b.2010,"POLYGON")
+p.2010$area.m = as.numeric(st_area(p.2010))
+p.2010.df <- as.data.frame(p.2010) 
+p.2010.df.out <-  p.2010.df %>% 
+  group_by(SiteName,V17_CH ) %>% 
+  summarise(R_pest_2010_m2 = sum(area.m))
+r.pest.out.total = left_join(r.pest.out.total,p.2010.df.out) # add to the data summary
+
+r.pest.out.total.te = r.pest.out.total
 
 
 # fix summary 
@@ -1109,16 +1346,6 @@ st_make_valid(r.pest2)
         st_make_valid(r.pest2)
         
         r.pest.df2 = r.pest2
-        
-        # add decade data   # add a column to differentiate the age brackets of pest capture
-        r.pest.df2<- r.pest.df2 %>% mutate(dec.period = ifelse(CAPTURE_YEAR >= 1960 & CAPTURE_YEAR <= 1969,1960,0))
-        r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 1970 & CAPTURE_YEAR <= 1979,1970,dec.period))
-        r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 1980 & CAPTURE_YEAR <= 1989,1980,dec.period))
-        r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 1990 & CAPTURE_YEAR <= 1999,1990,dec.period))
-        r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 2000 & CAPTURE_YEAR <= 2009,2000,dec.period))
-        r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 2010 & CAPTURE_YEAR <= 2018,2010,dec.period))
-        
-        #sort(unique(r.pest$CAPTURE_YEAR)) 
         
         # output tables: 
         # work with the data frames
