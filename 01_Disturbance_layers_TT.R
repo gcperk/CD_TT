@@ -590,29 +590,29 @@ all.range.out = read.csv(paste(temp.dir,"Static_dist_TT.csv",sep = ""), header =
 ## 8) Cutblock ## this is all years of consolidated cutblock layer and Blairs error checked cutblocks
 
 # HERD 1)  ## Telkwa 
-b.r.c= st_read(dsn = Base , layer = "cutblock_union_Te")
-b.r.c <- st_cast(b.r.c,"POLYGON")
-b.r.c <- st_zm(b.r.c ,drop = TRUE)
-# get both values of HARVEST YEAR 
+b.r.c= st_read(dsn = Base , layer = "cutblock_union_Te")      # read in file
+b.r.c <- st_cast(b.r.c,"POLYGON")                             # confirm the geometry is polygon 
+b.r.c <- st_zm(b.r.c ,drop = TRUE)                            # drop the z co-ordinate
+# get both values of HARVEST YEAR (as this this two cutblock layers unioned together - we need to get a single value for harvest year )
 b.r.c$HARVEST_YEAR_ALL = ifelse(b.r.c$HARVEST_YEAR > 0,b.r.c$HARVEST_YEAR,b.r.c$HARVEST_YEAR_1 ) #sort(unique(b.r.c$HARVEST_YEAR_ALL)) # error check 
-b.r.c$TimeSinceCut = 2018-b.r.c$HARVEST_YEAR_ALL; # create new column with age since cut 
+b.r.c$TimeSinceCut = 2018-b.r.c$HARVEST_YEAR_ALL; # create new column with age since cut convert this to years 
 #sort(unique(b.r.c$TimeSinceCut)) # check the range in years since cut #note in the boreal the oldest age cut is 78 years 
 
       # Calculate the disturbance for 0-80 and 0-40 years
       # cutblocks 0-80 years
-      b.r.c0.80 = b.r.c[b.r.c$TimeSinceCut < 81,] ; unique(b.r.c0.80$TimeSinceCut); #plot(b.r.c0.80$Shape)
-      b.r.c0.80 = st_union(b.r.c0.80)
-      b.r.c0.80 = st_cast(b.r.c0.80,"POLYGON"); #
-      b.r.c0.80 = st_make_valid( b.r.c0.80)
-      b.r.c0.80 = st_intersection(all.range, b.r.c0.80)
-      b.r.c0.80$area.m = as.numeric(st_area(b.r.c0.80))
+      b.r.c0.80 = b.r.c[b.r.c$TimeSinceCut < 81,] ; unique(b.r.c0.80$TimeSinceCut); #plot(b.r.c0.80$Shape) # subset all cutblocks from 0 - 40 years old
+      b.r.c0.80 = st_union(b.r.c0.80)     # union (equivalent to dissolve)
+      b.r.c0.80 = st_cast(b.r.c0.80,"POLYGON"); # check it is polygon and geometry is complete 
+      b.r.c0.80 = st_make_valid( b.r.c0.80)     # fix geometry if not complete 
+      b.r.c0.80 = st_intersection(all.range, b.r.c0.80) # intersect with herd boundaries
+      b.r.c0.80$area.m = as.numeric(st_area(b.r.c0.80)) # calculate the area 
 
-      b.r.c0.80.df <- as.data.frame(b.r.c0.80 ) 
-      r.cut.df.out  = b.r.c0.80.df%>% 
+      b.r.c0.80.df <- as.data.frame(b.r.c0.80 ) # create a new object from the "atribute" table of the spatial data
+      r.cut.df.out  = b.r.c0.80.df%>%  # create a summary table of the area for each herd (sitename) and each habitat/ boundary type
         group_by(SiteName,V17_CH ) %>% 
         summarise(R_cut0_80_m2 = sum(area.m))
       
-      # cutblocks 0-40 years
+      # cutblocks 0-40 years # repeat the process above for the 0 - 80 years cutblock 
       b.r.c0.40 = b.r.c[b.r.c$TimeSinceCut < 41,] ; unique(b.r.c0.40$TimeSinceCut); #plot(st_geometry(b.r.c0.40))
       b.r.c0.40 = st_union(b.r.c0.40)
       b.r.c0.40 = st_cast(b.r.c0.40,"POLYGON")
@@ -626,10 +626,10 @@ b.r.c$TimeSinceCut = 2018-b.r.c$HARVEST_YEAR_ALL; # create new column with age s
         summarise(R_cut0_40_m2 = sum(area.m))
       
      # calculate the disturbance for telkwa (0-40 and 0 - 80 in table form - use this later to add to Tweeds herds) 
-      r.cut.out = merge(r.cut.df.out,r.cut.df.out40  )
+      r.cut.out = merge(r.cut.df.out,r.cut.df.out40  ) # merge the two summary tables together
     
-      r.cut.df <- b.r.c
-      # add a column to differentiate the age brackets of cutblocks by decades
+      r.cut.df <- b.r.c 
+      # add a column to differentiate the age brackets of cutblocks by decades (this is using the spatial data)
       r.cut.df <- mutate(r.cut.df,dec.period = ifelse(HARVEST_YEAR_ALL >= 1940 & HARVEST_YEAR_ALL <= 1949,1940,0))
       r.cut.df <- mutate(r.cut.df,dec.period = ifelse(HARVEST_YEAR_ALL >= 1950 & HARVEST_YEAR_ALL <= 1959,1950,dec.period))
       r.cut.df <- mutate(r.cut.df,dec.period = ifelse(HARVEST_YEAR_ALL >= 1960 & HARVEST_YEAR_ALL <= 1969,1960,dec.period))
@@ -643,7 +643,7 @@ b.r.c$TimeSinceCut = 2018-b.r.c$HARVEST_YEAR_ALL; # create new column with age s
       ## generate table output the amount of cutblock by range (all years (0-80))  
       #r.cut.df.df = as.data.frame(r.cut.df)
     
-      # generate cumulative burn disturbance shapefiles to be added sequentially to "static Disturbance" 
+      # generate cumulative burn disturbance shapefiles to be added sequentially to "static disturbance" 
       head(r.cut.df) ; unique(r.cut.df$dec.period)
       Cut.dec.1950 <- r.cut.df %>% filter(dec.period == 1950)
       Cut.dec.1960 <- r.cut.df %>% filter(dec.period < 1961 )
@@ -662,7 +662,7 @@ b.r.c$TimeSinceCut = 2018-b.r.c$HARVEST_YEAR_ALL; # create new column with age s
     #  st_write(Cut.dec.2000,paste(temp.dir,"Cut.te.dec.2000.shp",sep = "")) # this writes out as single layer
     #  st_write(Cut.dec.2010,paste(temp.dir,"Cut.te.dec.2010.shp",sep = "")) # this writes out as single layer
     
-      # generate consolidated outputs overtime per decage 
+      # generate consolidated output summary tables for each decade (same as the 0-40 and 0-80 as above) overtime per decage 
       c.1950 <- st_union(Cut.dec.1950) # empty
       
       c.1960 <- st_union(Cut.dec.1960)
@@ -914,7 +914,6 @@ plot(st_geometry(all.range),add = T)
     b.r.0.40 <- st_cast(b.r.0.40,"POLYGON")
     b.r.0.40 = st_make_valid( b.r.0.40 )
     b.r.0.40 = st_intersection(all.range,b.r.0.40)
-    
     b.r.0.40$area.m = as.numeric(st_area( b.r.0.40 ))
     b.r.0.40.df = data.frame(b.r.0.40)        # calculate the length per range 
     b.r.0.40.out  =  b.r.0.40.df%>% 
@@ -927,7 +926,6 @@ plot(st_geometry(all.range),add = T)
     b.r.0.80 <- st_cast(b.r.0.80,"POLYGON")
     b.r.0.80 = st_make_valid( b.r.0.80 )
     b.r.0.80 = st_intersection(all.range,b.r.0.80)
-    
     b.r.0.80$area.m = as.numeric(st_area(b.r.0.80))
     b.r.0.80.df = data.frame(b.r.0.80)        # calculate the length per range 
     b.r.0.80.out  =  b.r.0.80.df%>% 
@@ -976,41 +974,40 @@ plot(st_geometry(all.range),add = T)
     #st_write(Burn.dec.2000,paste(temp.dir,"Burn.dec.2000.shp",sep = "")) # this writes out as single layer
     #st_write(Burn.dec.2010,paste(temp.dir,"Burn.dec.2010.shp",sep = "")) # this writes out as single layer
     
-
     ## add the section for each decade (cumulative )
     # generate consolidated outputs overtime per decage 
     b.1950 <- st_union(Burn.dec.1950) # empty
-      b.1950 <- st_cast(b.1950,"POLYGON") #; st_is_valid(b.1950)
-      b.1950 = st_intersection(all.range, b.1950) ; b.1950 <- st_make_valid(b.1950)
-      #b.1950 <- st_cast(b.1950,"POLYGON")
-      b.1950$area.m = as.numeric(st_area(b.1950))
-      b.1950.df <- as.data.frame(b.1950) 
-      b.1950.df.out <-  b.1950.df %>% 
-        group_by(SiteName,V17_CH ) %>% 
-        summarise(R_burn_1950_m2 = sum(area.m))
+        b.1950 <- st_cast(b.1950,"POLYGON") #; st_is_valid(b.1950)
+        b.1950 = st_intersection(all.range, b.1950) ; b.1950 <- st_make_valid(b.1950)
+        #b.1950 <- st_cast(b.1950,"POLYGON")
+        b.1950$area.m = as.numeric(st_area(b.1950))
+        b.1950.df <- as.data.frame(b.1950) 
+        b.1950.df.out <-  b.1950.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_burn_1950_m2 = sum(area.m))
       r.burn.out.total = left_join(r.burn.out, b.1950.df.out) # add to the data summary
       
     b.1960 <- st_union(Burn.dec.1960)
-      b.1960 <- st_cast(b.1960,"POLYGON") #; st_is_valid(c.1960)
-      b.1960 = st_intersection(all.range, b.1960) ; b.1960 <- st_make_valid(b.1960)
-     # b.1960 <- st_cast(b.1960,"POLYGON")
-      b.1960$area.m = as.numeric(st_area(b.1960))
-      b.1960.df <- as.data.frame(b.1960) 
-      b.1960.df.out <-  b.1960.df %>% 
-        group_by(SiteName,V17_CH ) %>% 
-        summarise(R_burn_1960_m2 = sum(area.m))
+        b.1960 <- st_cast(b.1960,"POLYGON") #; st_is_valid(c.1960)
+        b.1960 = st_intersection(all.range, b.1960) ; b.1960 <- st_make_valid(b.1960)
+       # b.1960 <- st_cast(b.1960,"POLYGON")
+        b.1960$area.m = as.numeric(st_area(b.1960))
+        b.1960.df <- as.data.frame(b.1960) 
+        b.1960.df.out <-  b.1960.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_burn_1960_m2 = sum(area.m))
       r.burn.out.total = left_join(r.burn.out,b.1960.df.out) # add to the data summary
     
     b.1970 <- st_union(Burn.dec.1970)
-      b.1970 <- st_cast(b.1970,"POLYGON") #; st_is_valid(c.1960)
-      b.1970 = st_intersection(all.range, b.1970) ; b.1970 <- st_make_valid(b.1970)
-      #b.1970 <- st_cast(b.1970,"POLYGON")
-      b.1970$area.m = as.numeric(st_area(b.1970))
-      b.1970.df <- as.data.frame(b.1970) 
-      b.1970.df.out <-  b.1970.df %>% 
-        group_by(SiteName,V17_CH ) %>% 
-        summarise(R_burn_1970_m2 = sum(area.m))
-      r.burn.out.total = left_join(r.burn.out,b.1970.df.out) # add to the data summary
+        b.1970 <- st_cast(b.1970,"POLYGON") #; st_is_valid(c.1960)
+        b.1970 = st_intersection(all.range, b.1970) ; b.1970 <- st_make_valid(b.1970)
+        #b.1970 <- st_cast(b.1970,"POLYGON")
+        b.1970$area.m = as.numeric(st_area(b.1970))
+        b.1970.df <- as.data.frame(b.1970) 
+        b.1970.df.out <-  b.1970.df %>% 
+          group_by(SiteName,V17_CH ) %>% 
+          summarise(R_burn_1970_m2 = sum(area.m))
+        r.burn.out.total = left_join(r.burn.out,b.1970.df.out) # add to the data summary
     
     b.1980 <- st_union(Burn.dec.1980)
         b.1980 <- st_cast(b.1980,"POLYGON") #; st_is_valid(c.1960)
@@ -1071,7 +1068,7 @@ plot(st_geometry(all.range),add = T)
 ### PEST 
 # this needs pre-processing in arcmap - select ibm and ibs species - split into two sections as this is 
 r.pest.te <-  st_read(dsn = Base, layer ="Pest_clip_Te_IBMIBS") #; plot(st_geometry(r.pest.te))
-r.pest.tw <-  st_read(dsn = Base, layer ="Pest_clip_Tw_IBMIBS") #; plot(st_geometry(r.pest.tw))
+#r.pest.tw <-  st_read(dsn = Base, layer ="Pest_clip_Tw_IBMIBS") #; plot(st_geometry(r.pest.tw))
 
 # Telkwa 
 r.pest <- r.pest.te
@@ -1125,8 +1122,7 @@ r.pest <- st_cast(r.pest,"POLYGON")
     #st_write(Pest.dec.1990,paste(temp.dir,"Pest.te.dec.1990.shp",sep = "")) # this writes out as single layer
     #st_write(Pest.dec.2000,paste(temp.dir,"Pest.te.dec.2000.shp",sep = "")) # this writes out as single layer
     #st_write(Pest.dec.2010,paste(temp.dir,"Pest.te.dec.2010.shp",sep = "")) # this writes out as single layer
-    
-    
+
     ## add the section for each decade (cumulative )
     # generate consolidated outputs overtime per decage 
     #p.1950 <- st_union(Pest.dec.1950) # empty
@@ -1200,6 +1196,7 @@ r.pest <- st_cast(r.pest,"POLYGON")
     r.pest.out.total.te = r.pest.out.total
 
 # Tweedsmuir 
+r.pest.tw <-  st_read(dsn = Base, layer ="Pest_clip_Tw_IBMIBS") #; plot(st_geometry(r.pest.tw))
 r.pest2 <- r.pest.tw
 r.pest2<- st_zm(r.pest2 ,drop = TRUE) # this is a linear feature so need to buffer to estimate area calcs
 r.pest2 = st_cast(r.pest2,"POLYGON"); st_is_valid(r.pest2)
@@ -1208,17 +1205,8 @@ r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
 #plot(st_geometry(r.pest2), col = 'red') ; plot(st_geometry(all.range),add = T)
 
 
-
-
-
-      ## UP TO HERE ##############
-
-
-
-
-
-
-      # burns 0-40 years 
+      ## UP TO HERE #############
+      # burns 0-40 years only one 
       r.p.0.402 = r.pest2[r.pest2$TimeSincePest <41,]; #sort(unique(b.r.0$TimeSinceBurn)) 
       r.p.0.402 = st_union(r.p.0.402)
       
@@ -1250,15 +1238,14 @@ r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
       Pest.dec.20102 <- r.pest.df2 %>% filter(dec.period < 2011 )
       # Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
       
-      # output shapefiles. 
-      # write out the shapefiles to Data.drive
-      st_write(Pest.dec.19502 ,paste(temp.dir,"Pest.tw.dec.1950.shp",sep = "")) # this writes out as single layer   
-      st_write(Pest.dec.19602 ,paste(temp.dir,"Pest.tw.dec.1960.shp",sep = "")) # this writes out as single layer
-      st_write(Pest.dec.19702 ,paste(temp.dir,"Pest.tw.dec.1970.shp",sep = "")) # this writes out as single layer
-      st_write(Pest.dec.19802 ,paste(temp.dir,"Pest.tw.dec.1980.shp",sep = "")) # this writes out as single layer
-      st_write(Pest.dec.19902,paste(temp.dir,"Pest.tw.dec.1990.shp",sep = "")) # this writes out as single layer
-      st_write(Pest.dec.20002,paste(temp.dir,"Pest.tw.dec.2000.shp",sep = "")) # this writes out as single layer
-      st_write(Pest.dec.20102,paste(temp.dir,"Pest.tw.dec.2010.shp",sep = "")) # this writes out as single layer
+      ## write out the shapefiles to Data.drive
+      #st_write(Pest.dec.19502 ,paste(temp.dir,"Pest.tw.dec.1950.shp",sep = "")) # this writes out as single layer   
+      #st_write(Pest.dec.19602 ,paste(temp.dir,"Pest.tw.dec.1960.shp",sep = "")) # this writes out as single layer
+      #st_write(Pest.dec.19702 ,paste(temp.dir,"Pest.tw.dec.1970.shp",sep = "")) # this writes out as single layer
+      #st_write(Pest.dec.19802 ,paste(temp.dir,"Pest.tw.dec.1980.shp",sep = "")) # this writes out as single layer
+      #st_write(Pest.dec.19902,paste(temp.dir,"Pest.tw.dec.1990.shp",sep = "")) # this writes out as single layer
+      #st_write(Pest.dec.20002,paste(temp.dir,"Pest.tw.dec.2000.shp",sep = "")) # this writes out as single layer
+      #st_write(Pest.dec.20102,paste(temp.dir,"Pest.tw.dec.2010.shp",sep = "")) # this writes out as single layer
       
 
 ## add the section for each decade (cumulative )
@@ -1268,37 +1255,37 @@ r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
 
       # check if there is a 1950;s 
       
-p.1960 <- st_union(Pest.dec.1960)
-p.1960 <- st_cast(p.1960,"POLYGON") #; st_is_valid(c.1960)
-p.1960 = st_intersection(all.range, p.1960) ; p.1960 <- st_make_valid(p.1960)
-p.1960$area.m = as.numeric(st_area(p.1960))
-p.1960.df <- as.data.frame(p.1960) 
-p.1960.df.out <-  p.1960.df %>% 
-  group_by(SiteName,V17_CH ) %>% 
-  summarise(R_pest_1960_m2 = sum(area.m))
-r.pest.out.total = left_join(r.p.0.40.out,b.1960.df.out) # add to the data summary
+      p.19602 <- st_union(Pest.dec.19602)
+      p.19602 <- st_cast(p.19602,"POLYGON") #; st_is_valid(c.1960)
+      p.19602 = st_intersection(all.range, p.19602) ; p.1960 <- st_make_valid(p.19602)
+      p.1960$area.m = as.numeric(st_area(p.19602))
+      p.1960.df <- as.data.frame(p.19602) 
+      p.19602.df.out <-  p.1960.df %>% 
+        group_by(SiteName,V17_CH ) %>% 
+        summarise(R_pest_1960_m2 = sum(area.m))
+      r.pest.out.total2 = left_join(r.p.0.402.out,b.19602.df.out) # add to the data summary
 
-p.1970 <- st_union(Pest.dec.1970)
-p.1970 <- st_cast(p.1970,"POLYGON") #; st_is_valid(c.1960)
-p.1970 = st_intersection(all.range, p.1970) ; p.1970 <- st_make_valid(p.1970)
-#b.1970 <- st_cast(b.1970,"POLYGON")
-p.1970$area.m = as.numeric(st_area(p.1970))
-p.1970.df <- as.data.frame(p.1970) 
-p.1970.df.out <-  p.1970.df %>% 
-  group_by(SiteName,V17_CH ) %>% 
-  summarise(R_pest_1970_m2 = sum(area.m))
-r.pest.out.total = left_join( r.pest.out.total,p.1970.df.out) # add to the data summary
+      p.19702 <- st_union(Pest.dec.19702)
+      p.19702 <- st_cast(p.19702,"POLYGON") #; st_is_valid(c.1960)
+      p.19702 = st_intersection(all.range, p.19702) ; p.19702 <- st_make_valid(p.19702)
+      #b.19702 <- st_cast(b.19702,"POLYGON")
+      p.19702$area.m = as.numeric(st_area(p.19702))
+      p.19702.df <- as.data.frame(p.19702) 
+      p.19702.df.out <-  p.19702.df %>% 
+        group_by(SiteName,V17_CH ) %>% 
+        summarise(R_pest_1970_m2 = sum(area.m))
+      r.pest.out.total2 = left_join( r.pest.out.total2,p.19702.df.out) # add to the data summary
 
-p.1980 <- st_union(Pest.dec.1980)
-p.1980 <- st_cast(p.1980,"POLYGON") #; st_is_valid(c.1960)
-p.1980 = st_intersection(all.range, p.1980) #; b.1980 <- st_make_valid(b.1980)
-#b.1980 <- st_cast(b.1980,"POLYGON") #; st_is_valid(b.1980)
-p.1980$area.m = as.numeric(st_area(p.1980))
-p.1980.df <- as.data.frame(p.1980) 
-p.1980.df.out <-  p.1980.df %>% 
-  group_by(SiteName,V17_CH ) %>% 
-  summarise(R_pest_1980_m2 = sum(area.m))
-r.pest.out.total = left_join(r.pest.out.total,p.1980.df.out) # add to the data summary
+      p.1980 <- st_union(Pest.dec.1980)
+      p.1980 <- st_cast(p.1980,"POLYGON") #; st_is_valid(c.1960)
+      p.1980 = st_intersection(all.range, p.1980) #; b.1980 <- st_make_valid(b.1980)
+      #b.1980 <- st_cast(b.1980,"POLYGON") #; st_is_valid(b.1980)
+      p.1980$area.m = as.numeric(st_area(p.1980))
+      p.1980.df <- as.data.frame(p.1980) 
+      p.1980.df.out <-  p.1980.df %>% 
+        group_by(SiteName,V17_CH ) %>% 
+        summarise(R_pest_1980_m2 = sum(area.m))
+      r.pest.out.total = left_join(r.pest.out.total,p.1980.df.out) # add to the data summary
 
 p.1990 <- st_union(Pest.dec.1990)
 p.1990 <- st_cast(p.1990,"POLYGON") #; st_is_valid(c.1960)
