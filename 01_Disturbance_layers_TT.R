@@ -10,6 +10,7 @@
 ## Assemble layers as per datasheet in arcmap mxd 
 ## Clip the layers to the range with the largest extent (for example range boundary for Boreal (not core))
 ## Create a filegeodatabdase and output these to the given data base. 
+## Some layers may require more pre-processing (for examples roads or pests (filter to IMB & IBS))
 ##
 ## Step 2)
 ## Run through the script below. You may need to adjust 
@@ -17,8 +18,10 @@
 ## - the directory/folder sructure. 
 ##
 ## General notes: 
-## For each disturbance layers the script will read in, intersect with range and core areas and calculate the area and or length. The peripery area will be calculated for each herd as well. 
-## With each layer the compiled disturbance will also be calculated. 
+## For each disturbance layers the script will read in, intersect with habitat types and herds and calculate the area. 
+## The compiled disturbance will be calculates as each layer is added (table and spatial format)
+## Static disturbances are calculated first, then temporal disturbances are calculated and to the static disturbance 
+
 
 ## Associated help files for reference: 
 ##https://gis.stackexchange.com/questions/265863/how-to-read-a-feature-class-in-an-esri-personal-geodatabase-using-r
@@ -55,28 +58,18 @@ library(mapview)
 
 ## set your output directory 
 
-## To run analysis on restricted folder
-#out.dir = "X:/projects/Desktop_Analysis/data/output1/"
-#temp.dir = "X:/projects/Desktop_Analysis/data/temp/"
-
-# to run analysis on W drive: 
-#out.dir = "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Outputs/"
-#temp.dir = "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Data"
-
 # to run analysis on C drive: 
 out.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/"
 temp.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Data/"
 
-#temp.dir = "T:/Temp/Perkins/Data/"
-#out.dir = "T:/Temp/Perkins/Outputs/" 
-
 ## Set your input geodatabases (this will be where you saved your arcmap exports)
 ## edit these to your filepath and name of gdb
-
-#Base= "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Data/Base_data.gdb" # contains 
-#Base= "T:/Temp/Perkins/Data/Base_data.gdb"
-
 Base= "C:/Temp/TweedTelkwa/Temp/Perkins/Data/Base_data.gdb" # contains 
+
+# OR if you are running this on the T drive of the GTS 
+#temp.dir = "T:/Temp/Perkins/Data/"
+#out.dir = "T:/Temp/Perkins/Outputs/" 
+#Base= "T:/Temp/Perkins/Data/Base_data.gdb"
 
 ## List all feature classes in a file geodatabase
 subset(ogrDrivers(), grepl("GDB", name))
@@ -85,20 +78,19 @@ base_list <- ogrListLayers(Base); print(base_list)
 ##############################################################################################
 # Read in herd boundary layers 
 
-b.range <- st_read(dsn=Base,layer="TT_boundary")
-b.range <-st_cast(b.range,"MULTIPOLYGON")     # fix overlaps
-#plot(st_geometry(b.range))
-#plot(b.range)
+b.range <- st_read(dsn=Base,layer="TT_boundary") 
+b.range <-st_cast(b.range,"MULTIPOLYGON")     # check and fix geometry 
+#plot(st_geometry(b.range)) # plot the herds to see if it looks correct
 
 # calculate the areas of each of the Herd habitat types (HWSR,LWR,LSR,MR,ALL)
-Herd_key<- data.frame(b.range) %>% 
+Herd_key<- data.frame(b.range) %>%  # convert to dataframe, then delect columns of interest, create new column to calculate area (ha), summarise per herd
   dplyr::select(SiteName,V17_CH,SHAPE_Area) %>%  # note SHAPE_AREA is calculated in square meters
   mutate(R_area_ha = SHAPE_Area/10000) %>%
   dplyr::select(SiteName,V17_CH,R_area_ha) %>%
   group_by(SiteName)%>%
   summarise(R_area_ha = sum(R_area_ha))
 
-Herd_key_detail <-  data.frame(b.range) %>% 
+Herd_key_detail <-  data.frame(b.range) %>%    # as above however summary is calculated per herd and habiatat type. 
   dplyr::select(SiteName,V17_CH,SHAPE_Area) %>%  # note SHAPE_AREA is calculated in square meters
   mutate(H_area_ha = SHAPE_Area/10000) %>%
   group_by(SiteName,V17_CH)%>%
@@ -109,7 +101,7 @@ Herd_key_detail <-  data.frame(b.range) %>%
   rename(LWR_ha = 'Low Elevation Winter Range')%>%
   rename(MR_ha = 'Matrix Range')
 
-Herd_key = left_join(Herd_key,Herd_key_detail)
+Herd_key = left_join(Herd_key,Herd_key_detail) # join the two cummaries 
 Herd_key[is.na(Herd_key)] <- 0
 
 # calculate the area for all habitats and 
@@ -135,53 +127,44 @@ all.range <- st_make_valid(all.range)
 all.range.out <- data.frame(all.range)%>%
   dplyr::select(SiteName,V17_CH )
 
-#b.range <- st_read(dsn=Base,layer="TT_bdry_diss") ; plot(st_geometry(all.range))
-#b.HWSR <- st_read(dsn=Base,layer="B_HWSR") ; plot(st_geometry(b.HWSR))
-##b.LSR <- st_read(dsn=Base,layer="B_LSR"); plot(st_geometry(b.LSR)) ## this is not working correctly 
-#b.LWR <- st_read(dsn = Base,layer="B_LWR"); plot(st_geometry(b.LWR ))
-#b.MR <- st_read(dsn = Base,layer="B_MR"); plot(st_geometry(b.MR ))
-  
 ##############################################################################################
 # Read in individual Disturbance layers:
 
 # 1) pipeline (length)
-r.pipe <- st_read(dsn=Base,layer="Pipeline_clip") # multistring 
+r.pipe <- st_read(dsn=Base,layer="Pipeline_clip") # multistring # read in the feature class
           r.pipe.int = st_intersection(all.range,r.pipe)   # intersect with single all ranges
           # RANGE: intersect with range 
-          r.pipe.int <- st_buffer(r.pipe.int,1)  ; all.pipe = sum(st_area(r.pipe)) ; plot(st_geometry(r.pipe))
+          r.pipe.int <- st_buffer(r.pipe.int,1)  ; all.pipe = sum(st_area(r.pipe)) ; plot(st_geometry(r.pipe)) # buffer to 1 m to convert from line to polygon this will enable you to calculate area 
           st_is_valid(r.pipe.int)                       # check valid geometry
           r.pipe.int = st_cast(r.pipe.int,"POLYGON")     # fix overlaps
-          r.pipe.int$Area.m <- as.numeric(st_area(r.pipe.int))
+          r.pipe.int$Area.m <- as.numeric(st_area(r.pipe.int)) # calculate the area of the pipeline
           
-          plot(st_geometry(r.pipe.int))
+          #plot(st_geometry(r.pipe.int)) # check by plotting 
           #st_write(r.pipe.int,"Dist_R_pipe.shp")       #write out individual dist_layer for Range
-          r.pipe.int.df = data.frame(r.pipe.int)        # calcaulte area
-          r.pipe.int.df.out  = r.pipe.int.df %>% 
+          r.pipe.int.df = data.frame(r.pipe.int)        # Convert to a dataframe
+          r.pipe.int.df.out  = r.pipe.int.df %>%        # calculate to total area per herd and habitat type 
                    group_by(SiteName,V17_CH) %>% 
-                  summarise(R_Pipe_area_m = sum(Area.m))
-          #out [is.na(out )] <- 0
-          #out$P_Pipe_area_m = out$R_Pipe_area_m - out$C_Pipe_area_m
-          out.pipe = r.pipe.int
-          all.range.out<- left_join(all.range.out, r.pipe.int.df.out)     
-          all.range.out[is.na(all.range.out)]<-0
+                  summarise(R_Pipe_area_m = sum(Area.m)) 
+          #out.pipe = r.pipe.int                             # change names so the code fits further down 
+          all.range.out<- left_join(all.range.out, r.pipe.int.df.out)     # Join the base data for herds and habitat type with pipe info.
+          all.range.out[is.na(all.range.out)]<-0                          # convert the NAs to zeros
           
 # 2) transmission (length and area) 
-r.tran.sf <- st_read(dsn=Base,layer="Trans_clip") # multistring  
-          
+r.tran.sf <- st_read(dsn=Base,layer="Trans_clip") # multistring   # read in data 
           # 1) RANGE: calculate the range extent to use range extent 
           r.tran <- st_intersection(all.range,r.tran.sf)# intersect with ranges
-          r.tran <- st_buffer(r.tran,1) #;all.tran = sum(st_area(r.tran)) 
-          r.tran <- st_cast(r.tran,"POLYGON")
-          r.tran$area_m = as.numeric(st_area(r.tran))
+          r.tran <- st_buffer(r.tran,1) #;all.tran = sum(st_area(r.tran)) # buffer to 1m to convert from a line to a polygon 
+          r.tran <- st_cast(r.tran,"POLYGON") # check geometry 
+          r.tran$area_m = as.numeric(st_area(r.tran)) # calculate the area of each polygon 
           #st_is_valid(r.tran)                   # check valid geometr
-          r.tran.df = data.frame(r.tran)        # calculate the length per range 
-          r.tran.df.out  = r.tran.df %>% 
+          r.tran.df = data.frame(r.tran)        # Convert to dataframe 
+          r.tran.df.out  = r.tran.df %>%        # calculate the area per range
             group_by(SiteName,V17_CH) %>% 
             summarise(R_Trans_area_m = sum(area_m))
         
           ##plot(st_geometry(r.tran))
           #st_write(r.tran,"Dist_R_tran.shp")       #write out individual dist_layer for Range
-          out.trans <- r.tran.df.out 
+          #out.trans <- r.tran.df.out 
           all.range.out<- left_join(all.range.out, r.tran.df.out)     
           all.range.out[is.na(all.range.out)]<-0
           
@@ -192,10 +175,9 @@ r.tran.sf <- st_read(dsn=Base,layer="Trans_clip") # multistring
           ##x.area = sum(st_area(out)) ; x.area #298446.6 
           
           
-# 3) mine
+# 3) mine 
 r.mine.sf <- st_read(dsn=Base,layer="Mining_clip") # multipoly
 r.mine <- st_zm(r.mine.sf,drop = TRUE) # drop the z portion of the shapefile. 
-
           # 1) RANGE: calculate the range extent to use range extent 
           r.mine <- st_intersection(all.range,r.mine)
           r.mine <- st_cast(r.mine,"POLYGON")
@@ -210,12 +192,16 @@ r.mine <- st_zm(r.mine.sf,drop = TRUE) # drop the z portion of the shapefile.
           all.range.out <- left_join(all.range.out,r.mine.df.out) ; 
           all.range.out[is.na(all.range.out)]<-0
 
-        ## 3) ALL DISTURBANCE UNION 2 
+        ## 3) ALL DISTURBANCE UNION 2 # join together the spatial data for the successive disturbance layers 
           out = st_make_valid(out)
           r.mine = st_make_valid(r.mine)
           out1 = st_union(out,r.mine)  ; plot(st_geometry(out1)) ; rm(out)
         #  #x.area = sum(st_area(out1)) ; x.area #20570863 m2 # error check 
 
+          
+# BC oil and gas layer tested and no area found within the TT boundaries            
+ 
+          
 # 4) agriculture 
 r.agr.sf <- st_read(dsn=Base,layer="Agri_clip") # multipoly
 r.agr.sf <- st_zm(r.agr.sf,drop = TRUE)
@@ -440,13 +426,11 @@ b.s1 <- st_union(b.s1)
         all.range.out[is.na(all.range.out)]<-0      
    
              
-## 14) Roads # buffer to 6m width (3m either side) 
-# due to the size - roads are split into herds
-# Preparation includes split into herds and buffer to 15m width (Telkwa) - Tweeds still to complete) 
-
-# 15 m buffer needs to be added
-        
-## Roads divided into two shapefiles #Roads1_clip ; #Roads2_clip , #Roads_merge, Roads_diss
+## 14) Roads 
+# this requires pre-processing in Arcmap map. Spli 
+# Buffered to total width of 15m (based on previous disturbance analysis and large number of smaller forestry roads in the tweedsmuir herd)
+# Preparation includes split into herds and buffer to 15m width the dissolve into single polgons.
+# due to the size of the herds this was split into smaller areas for the tweedsmuir herds due to the size     
         
 ## Telkwa herd        
       b.r1.sf = sf::st_read(dsn = Base , layer ="Te_road_buf_diss" ) 
@@ -735,6 +719,7 @@ b.r.c$TimeSinceCut = 2018-b.r.c$HARVEST_YEAR_ALL; # create new column with age s
           #           = spatial data at each decade. 
           
 # HERD 2)  ## Tweedsmuir
+          
 b.r.c2= st_read(dsn = Base , layer = "cutblock_union_Tw")
 b.r.c2 <- st_zm(b.r.c2 ,drop = TRUE)
 # get both values of HARVEST YEAR 
@@ -881,13 +866,9 @@ b.r.c2 <- st_make_valid(b.r.c2)
     # Join the telkwa and Tweedsmuir herd info together   
     r.cut.out.all = rbind(r.cut.out.te,r.cut.out.tw) 
 
-        
     # combine into disturbance by layer 
     all.range.out <- left_join(all.range.out,r.cut.out.all)  
     all.range.out[is.na(all.range.out)]<-0
-    
-  #  write.csv(all.range.out,paste(temp.dir,"Temp_output_summary.csv",sep =""))  
-
     
 #################################################################### 
 
@@ -1057,18 +1038,17 @@ plot(st_geometry(all.range),add = T)
       
       ###############
       
-      r.burn.out.total
-
     # combine into disturbance by layer 
     all.range.out <- left_join(all.range.out, r.burn.out.total)  
     all.range.out[is.na(all.range.out)]<-0
-      #write.csv(all.range.out,paste(temp.dir,"Temp_output_summary.csv",sep =""))  
+   
     
 ############################################
 ### PEST 
-# this needs pre-processing in arcmap - select ibm and ibs species - split into two sections as this is 
+# this needs pre-processing in arcmap select ibm and ibs species and clip to boundary 
+# split into two sections as this is too large 
+    
 r.pest.te <-  st_read(dsn = Base, layer ="Pest_clip_Te_IBMIBS") #; plot(st_geometry(r.pest.te))
-#r.pest.tw <-  st_read(dsn = Base, layer ="Pest_clip_Tw_IBMIBS") #; plot(st_geometry(r.pest.tw))
 
 # Telkwa 
 r.pest <- r.pest.te
@@ -1135,7 +1115,7 @@ r.pest <- st_cast(r.pest,"POLYGON")
         p.1960.df.out <-  p.1960.df %>% 
           group_by(SiteName,V17_CH ) %>% 
           summarise(R_pest_1960_m2 = sum(area.m))
-    r.pest.out.total = left_join(r.p.0.40.out,b.1960.df.out) # add to the data summary
+    r.pest.out.total = left_join(r.p.0.40.out,p.1960.df.out) # add to the data summary
     
     p.1970 <- st_union(Pest.dec.1970)
         p.1970 <- st_cast(p.1970,"POLYGON") #; st_is_valid(c.1960)
@@ -1199,25 +1179,23 @@ r.pest <- st_cast(r.pest,"POLYGON")
 r.pest.tw <-  st_read(dsn = Base, layer ="Pest_clip_Tw_IBMIBS") #; plot(st_geometry(r.pest.tw))
 r.pest2 <- r.pest.tw
 r.pest2<- st_zm(r.pest2 ,drop = TRUE) # this is a linear feature so need to buffer to estimate area calcs
-r.pest2 = st_cast(r.pest2,"POLYGON"); st_is_valid(r.pest2)
+r.pest2 = st_cast(r.pest2,"POLYGON")#; st_is_valid(r.pest2)
 #r.pest2 = st_make_valid(r.pest2)
 r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
 #plot(st_geometry(r.pest2), col = 'red') ; plot(st_geometry(all.range),add = T)
 
-
-      ## UP TO HERE #############
       # burns 0-40 years only one 
       r.p.0.402 = r.pest2[r.pest2$TimeSincePest <41,]; #sort(unique(b.r.0$TimeSinceBurn)) 
       r.p.0.402 = st_union(r.p.0.402)
-      
       r.p.0.402 <- st_cast(r.p.0.402,"POLYGON") #; st_is_valid(r.p.0.40)
       r.p.0.402= st_intersection(all.range,r.p.0.402)
+
       r.p.0.402$area.m = as.numeric(st_area(r.p.0.402))
       r.p.0.402.df = data.frame(r.p.0.402)        # calculate the length per range 
       r.p.0.402.out  =  r.p.0.402.df%>% 
         group_by(SiteName,V17_CH) %>% 
         summarise(R_Pest040_m2 = sum(area.m))
-      
+     
       r.pest.df2 = r.pest2
       
       # add decade data   # add a column to differentiate the age brackets of pest capture
@@ -1256,17 +1234,17 @@ r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
       # check if there is a 1950;s 
       
       p.19602 <- st_union(Pest.dec.19602)
-      p.19602 <- st_cast(p.19602,"POLYGON") #; st_is_valid(c.1960)
-      p.19602 = st_intersection(all.range, p.19602) ; p.1960 <- st_make_valid(p.19602)
-      p.1960$area.m = as.numeric(st_area(p.19602))
-      p.1960.df <- as.data.frame(p.19602) 
-      p.19602.df.out <-  p.1960.df %>% 
+      p.19602 <- st_cast(p.19602,"POLYGON") #; st_is_valid(p.19602)
+      p.19602 = st_intersection(all.range, p.19602) #; p.19602 <- st_make_valid(p.19602)
+      p.19602$area.m = as.numeric(st_area(p.19602))
+      p.19602.df <- as.data.frame(p.19602) 
+      p.19602.df.out <-  p.19602.df %>% 
         group_by(SiteName,V17_CH ) %>% 
         summarise(R_pest_1960_m2 = sum(area.m))
-      r.pest.out.total2 = left_join(r.p.0.402.out,b.19602.df.out) # add to the data summary
+      r.pest.out.total2 = left_join(r.p.0.402.out,p.19602.df.out) # add to the data summary
 
       p.19702 <- st_union(Pest.dec.19702)
-      p.19702 <- st_cast(p.19702,"POLYGON") #; st_is_valid(c.1960)
+      p.19702 <- st_cast(p.19702,"POLYGON") #; st_is_valid(p.19702)
       p.19702 = st_intersection(all.range, p.19702) ; p.19702 <- st_make_valid(p.19702)
       #b.19702 <- st_cast(b.19702,"POLYGON")
       p.19702$area.m = as.numeric(st_area(p.19702))
@@ -1276,133 +1254,83 @@ r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
         summarise(R_pest_1970_m2 = sum(area.m))
       r.pest.out.total2 = left_join( r.pest.out.total2,p.19702.df.out) # add to the data summary
 
-      p.1980 <- st_union(Pest.dec.1980)
-      p.1980 <- st_cast(p.1980,"POLYGON") #; st_is_valid(c.1960)
-      p.1980 = st_intersection(all.range, p.1980) #; b.1980 <- st_make_valid(b.1980)
-      #b.1980 <- st_cast(b.1980,"POLYGON") #; st_is_valid(b.1980)
-      p.1980$area.m = as.numeric(st_area(p.1980))
-      p.1980.df <- as.data.frame(p.1980) 
-      p.1980.df.out <-  p.1980.df %>% 
+      p.19802 <- st_union(Pest.dec.19802)
+      p.19802 <- st_cast(p.19802,"POLYGON") #; st_is_valid(p.19802)
+      p.19802 = st_intersection(all.range, p.19802) #; b.1980 <- st_make_valid(b.1980)
+      #b.19802 <- st_cast(b.1980,"POLYGON") #; st_is_valid(b.1980)
+      p.19802$area.m = as.numeric(st_area(p.19802))
+      p.19802.df <- as.data.frame(p.19802) 
+      p.19802.df.out <-  p.19802.df %>% 
         group_by(SiteName,V17_CH ) %>% 
         summarise(R_pest_1980_m2 = sum(area.m))
-      r.pest.out.total = left_join(r.pest.out.total,p.1980.df.out) # add to the data summary
+      r.pest.out.total2 = left_join(r.pest.out.total2,p.19802.df.out) # add to the data summary
 
-p.1990 <- st_union(Pest.dec.1990)
-p.1990 <- st_cast(p.1990,"POLYGON") #; st_is_valid(c.1960)
-p.1990 = st_intersection(all.range, p.1990) #; b.1990 <- st_make_valid(c.1990)
-#p.1990 <- st_cast(b.1990,"POLYGON")
-p.1990$area.m = as.numeric(st_area(p.1990))
-p.1990.df <- as.data.frame(p.1990) 
-p.1990.df.out <-  p.1990.df %>% 
-  group_by(SiteName,V17_CH ) %>% 
-  summarise(R_pest_1990_m2 = sum(area.m))
-r.pest.out.total = left_join(r.pest.out.total,p.1990.df.out) # add to the data summary
+      p.19902 <- st_union(Pest.dec.19902)
+      p.19902 <- st_cast(p.19902,"POLYGON") #; st_is_valid(p.19902)
+      p.19902 = st_intersection(all.range, p.19902) #; b.1990 <- st_make_valid(c.1990) ; head(p.19902)
+      #p.1990 <- st_cast(b.1990,"POLYGON")
+      p.19902$area.m = as.numeric(st_area(p.19902))
+      p.19902.df <- as.data.frame(p.19902) 
+      p.19902.df.out <-  p.19902.df %>% 
+        group_by(SiteName,V17_CH ) %>% 
+        summarise(R_pest_1990_m2 = sum(area.m))
+      r.pest.out.total2 = left_join(r.pest.out.total2,p.19902.df.out) # add to the data summary
 
-p.2000 <- st_union(Pest.dec.2000)
-p.2000 <- st_cast(p.2000,"POLYGON") #; st_is_valid(c.2000)
-p.2000 = st_intersection(all.range, p.2000) ; p.2000 <- st_make_valid(p.2000)
-#p.2000 <- st_cast(c.2000,"POLYGON")
-p.2000$area.m = as.numeric(st_area(p.2000))
-p.2000.df <- as.data.frame(p.2000) 
-p.2000.df.out <-  p.2000.df %>% 
-  group_by(SiteName,V17_CH ) %>% 
-  summarise(R_pest_2000_m2 = sum(area.m))
-r.pest.out.total = left_join(r.pest.out.total,p.2000.df.out) # add to the data summary
+      p.20002 <- st_union(Pest.dec.20002)
+      p.20002 <- st_cast(p.20002,"POLYGON") #; st_is_valid(p.20002)
+      p.20002 = st_intersection(all.range, p.20002) #; p.20002 <- st_make_valid(p.20002)
+      #p.2000 <- st_cast(c.2000,"POLYGON")
+      p.20002$area.m = as.numeric(st_area(p.20002))
+      p.20002.df <- as.data.frame(p.20002) 
+      p.20002.df.out <-  p.20002.df %>% 
+        group_by(SiteName,V17_CH ) %>% 
+        summarise(R_pest_2000_m2 = sum(area.m))
+      r.pest.out.total2 = left_join(r.pest.out.total2,p.20002.df.out) # add to the data summary
 
-p.2010 <- st_union(Pest.dec.2010)
-p.2010 <- st_cast(p.2010,"POLYGON") #; st_is_valid(b.2010); b.2010 <- st_make_valid(b.2010)
-p.2010 = st_intersection(all.range, p.2010) 
-#head(b.2010)
-#p.2010 <- st_cast(b.2010,"POLYGON")
-p.2010$area.m = as.numeric(st_area(p.2010))
-p.2010.df <- as.data.frame(p.2010) 
-p.2010.df.out <-  p.2010.df %>% 
-  group_by(SiteName,V17_CH ) %>% 
-  summarise(R_pest_2010_m2 = sum(area.m))
-r.pest.out.total = left_join(r.pest.out.total,p.2010.df.out) # add to the data summary
+      p.20102 <- st_union(Pest.dec.20102)
+      p.20102 <- st_cast(p.20102,"POLYGON") #; st_is_valid(p.20102); p.20102 <- st_make_valid(p.20102)
+      p.20102 <- st_make_valid(p.20102)
+      p.20102 = st_intersection(all.range, p.20102) 
+      #head(b.2010)
+      #p.2010 <- st_cast(b.2010,"POLYGON")
+      p.20102$area.m = as.numeric(st_area(p.20102))
+      p.20102.df <- as.data.frame(p.20102) 
+      p.20102.df.out <-  p.20102.df %>% 
+        group_by(SiteName,V17_CH ) %>% 
+        summarise(R_pest_2010_m2 = sum(area.m))
+      r.pest.out.total2 = left_join(r.pest.out.total2,p.20102.df.out) # add to the data summary
 
-r.pest.out.total.te = r.pest.out.total
+    r.pest.out.total.tw = r.pest.out.total2
 
-
-# fix summary 
-
-        # Range 
-        r.pest2 <-  st_intersection(all.range,r.pest2) #; st_is_valid(r.pest)
-        r.pest2$area.m = as.numeric(st_area(r.pest2)) 
-        st_is_valid(r.pest2)
-        st_make_valid(r.pest2)
-        
-        r.pest.df2 = r.pest2
-        
-        # output tables: 
-        # work with the data frames
-        r.pest.df.df2 =  as.data.frame(r.pest.df2)
-        
-        # output the amount of burns by range (all years (0-80))  
-        r.pest.df.out2  = r.pest.df.df2 %>% 
-          group_by(SiteName, V17_CH) %>% summarise(R_pest_m2 = sum(area.m))
-        
-        #output the amount of burns per decade (all years) 
-        r.pest.df.out.temp2  =   r.pest.df.df2 %>% group_by(SiteName, V17_CH,dec.period) %>% summarise(R_pest_dec_m2 = sum(area.m))
-        
-        #output the amount of burn per decade per species (all years) 
-        r.pest.df.out.type2  = r.pest.df.df2 %>% group_by(SiteName,PEST_SPECIES_CODE,dec.period) %>% summarise(R_pest_type_m2 = sum(area.m))
-        
-        # Generate the cumulative pest damage into decades to add to "static Disturbance" 
-        Pest.dec.19502 <- r.pest.df2 %>% filter(dec.period == 1950)
-        Pest.dec.19602 <- r.pest.df2 %>% filter(dec.period < 1961 )
-        Pest.dec.19702 <- r.pest.df2 %>% filter(dec.period < 1971 )
-        Pest.dec.19802 <- r.pest.df2 %>% filter(dec.period < 1981 )
-        Pest.dec.19902 <- r.pest.df2 %>% filter(dec.period < 1991 )
-        Pest.dec.20002 <- r.pest.df2 %>% filter(dec.period < 2001 )
-        Pest.dec.20102 <- r.pest.df2 %>% filter(dec.period < 2011 )
-        # Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
-        
-        # output shapefiles. 
-        # write out the shapefiles to Data.drive
-        st_write(Pest.dec.19502 ,paste(temp.dir,"Pest.tw.dec.1950.shp",sep = "")) # this writes out as single layer   
-        st_write(Pest.dec.19602 ,paste(temp.dir,"Pest.tw.dec.1960.shp",sep = "")) # this writes out as single layer
-        st_write(Pest.dec.19702 ,paste(temp.dir,"Pest.tw.dec.1970.shp",sep = "")) # this writes out as single layer
-        st_write(Pest.dec.19802 ,paste(temp.dir,"Pest.tw.dec.1980.shp",sep = "")) # this writes out as single layer
-        st_write(Pest.dec.19902,paste(temp.dir,"Pest.tw.dec.1990.shp",sep = "")) # this writes out as single layer
-        st_write(Pest.dec.20002,paste(temp.dir,"Pest.tw.dec.2000.shp",sep = "")) # this writes out as single layer
-        st_write(Pest.dec.20102,paste(temp.dir,"Pest.tw.dec.2010.shp",sep = "")) # this writes out as single layer
-        
-        
-        
-        ## FIX BELOW 
-        
-        
-        
-        
- ###############
-        
-        # Join the telkwa and Tweedsmuir herd info together   
-        r.pest.out.all = rbind(r.pest.out,r.pest.out2) 
-        r.pest.decade.all = rbind(r.pest.df.out.temp,r.pest.df.out.temp2)  # keep this for the other decadenal outputs
-        
-        write.csv(r.pest.decade.all,paste(temp.dir,"Temp_pest_dec_outputs.csv",sep =""))  
-        
-        # combine into disturbance by layer 
-        all.range.out <- left_join(all.range.out,r.pest.out.all)  
-        all.range.out[is.na(all.range.out)]<-0
-        
-        write.csv(all.range.out,paste(temp.dir,"Temp_output_summary.csv",sep =""))  
-        
-   
+    ###########################################
+    # Join the telkwa and Tweedsmuir herd info together   
+    r.pest.out.all = rbind(r.pest.out.total.te,r.pest.out.total.tw) 
+    
+    all.range.out <- left_join(all.range.out,r.pest.out.all)  
+    all.range.out[is.na(all.range.out)]<-0
+    
+    write.csv(all.range.out,paste(temp.dir,"Temp_output_summary_all.csv",sep =""))        
+    
+  
+    
+      
 ############################################################################
 
-# Aggregate temporal data sets 
-  
-        
-        
-        
-# STILL TO DO>         
-        
-        
-              
-# Pests + Burns 
-        
+## Aggregate static and temporal data sets
+
+    ## Part 1: Spatial Data 
+       
+    
+    
+    ## UP TO HERE
+    
+    
+    
+    
+    
+    
+    
+    
 ############################################################################       
     
 # Step 1 aggregate table and output 
@@ -1449,10 +1377,5 @@ all.dis<- left_join(range.out,core.out)
 all.dis$P_allnatdis_m  = all.dis$R_allnatdis_m  - all.dis$C_allnatdis_m 
 write.csv(all.dis,paste(out.dir,"Combines_Nat_dist_RPC.csv",sep ="")) 
 
-
-###################################################################################
-
-# once this script is run - then use the 04_Disturbance_Data_summary.R script 
-# to collate all the csv's generated as part of this script and oputput the main summary table for reporting
 
 
