@@ -83,6 +83,7 @@ dpc <- read.csv(paste(out.dir,"Final_TT_summary_pc.csv",sep = ""))
 
 ############################################################
 # Cutblocks 
+############################################################
 
 # HERD 1)  ## Telkwa 
 b.r.c= st_read(dsn = Base , layer = "cutblock_union_Te")      # read in file
@@ -108,16 +109,6 @@ r.cut.df <- mutate(r.cut.df,dec.period = ifelse(HARVEST_YEAR_ALL >= 2010 & HARVE
 
 ## generate table output the amount of cutblock by range (all years (0-80))  
 #r.cut.df.df = as.data.frame(r.cut.df)
-
-# generate cumulative burn disturbance shapefiles to be added sequentially to "static disturbance" 
-head(r.cut.df) ; unique(r.cut.df$dec.period)
-Cut.dec.1950 <- r.cut.df %>% filter(dec.period == 1950)
-Cut.dec.1960 <- r.cut.df %>% filter(dec.period < 1961 )
-Cut.dec.1970 <-r.cut.df %>% filter(dec.period < 1971 )
-Cut.dec.1980 <-r.cut.df %>% filter(dec.period < 1981 )
-Cut.dec.1990 <- r.cut.df %>% filter(dec.period < 1991 )
-Cut.dec.2000 <- r.cut.df%>% filter(dec.period < 2001 )
-Cut.dec.2010 <- r.cut.df %>% filter(dec.period < 2011 )
 
 ################################################################################################################
 # Figure 1: make a plot of temporal and core.p.range for cutblocks
@@ -156,17 +147,6 @@ Cut.dec.2010 <- r.cut.df %>% filter(dec.period < 2011 )
   r.cut.df2 <- mutate(r.cut.df2,dec.period = ifelse(HARVEST_YEAR_ALL >= 2010 & HARVEST_YEAR_ALL <= 2019,2010,dec.period)) 
   #r.cut.df[r.cut.df$dec.period == 0,] ; unique(r.cut.df$dec.period)  # error check
   
-  # generate cumulative burn disturbance shapefiles to be added sequentially to "static Disturbance" 
-  head(r.cut.df2) ; unique(r.cut.df2$dec.period)
-  Cut.dec.19502 <- r.cut.df2 %>% filter(dec.period == 1950)
-  Cut.dec.19602 <- r.cut.df2 %>% filter(dec.period < 1961 )
-  Cut.dec.19702 <-r.cut.df2 %>% filter(dec.period < 1971 )
-  Cut.dec.19802 <-r.cut.df2 %>% filter(dec.period < 1981 )
-  Cut.dec.19902 <- r.cut.df2 %>% filter(dec.period < 1991 )
-  Cut.dec.20002 <- r.cut.df2%>% filter(dec.period < 2001 )
-  Cut.dec.20102 <- r.cut.df2 %>% filter(dec.period < 2011 )
-  
-  
   ################################################################################################################
   # Figure 1: make a plot of temporal and core.p.range for cutblocks
   b.range.temp <-  all.range[all.range$SiteName == "Tweedsmuir",]
@@ -181,12 +161,7 @@ Cut.dec.2010 <- r.cut.df %>% filter(dec.period < 2011 )
   
   
   ############################################################################
-  
   ## Figure 2: Percent Area of cutblock per habitat type.  
-  
-  ################################################################################
-  
-  
   dha <- read.csv(paste(out.dir,"Final_TT_summary_ha.csv",sep = ""))
   dpc <- read.csv(paste(out.dir,"Final_TT_summary_pc.csv",sep = ""))
 
@@ -237,9 +212,7 @@ for (i in herds) {
    
 
 #################################################################
-
 # Burns
-
 #################################################################
 b.r.0 = st_read(dsn = Base, layer ="fire_clip")
 b.r.0<- st_zm(b.r.0 ,drop = TRUE) # this is a linear feature so need to buffer to estimate area calcs
@@ -271,15 +244,6 @@ plot(st_geometry(all.range),add = TRUE)
 # generate cumulative burn disturbance shapefiles to be added sequentially to "static Disturbance" 
 Burn.dec = b.r.00.df
 
-Burn.dec.1950 <- Burn.dec %>% filter(dec.period == 1950)
-Burn.dec.1960 <- Burn.dec %>% filter(dec.period < 1961 )
-Burn.dec.1970 <- Burn.dec %>% filter(dec.period < 1971 )
-Burn.dec.1980 <- Burn.dec %>% filter(dec.period < 1981 )
-Burn.dec.1990 <- Burn.dec %>% filter(dec.period < 1991 )
-Burn.dec.2000 <- Burn.dec %>% filter(dec.period < 2001 )
-Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
-# Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
-
 ###############
 
 ## Figure 3: 
@@ -305,13 +269,8 @@ for (i in herds) {
  
 
 
-
-
-
-
 ##################################################################################
-# DATA SET 2:  PEST DATA - IBM vs IBB
-##################################################################################
+# DATA SET :  PEST DATA 
 ##################################################################################
 
 r.pest.te <-  st_read(dsn = Base, layer ="Pest_clip_Te_IBMIBS") #; plot(st_geometry(r.pest.te))
@@ -357,9 +316,11 @@ r.pest.tw <-  st_read(dsn = Base, layer ="Pest_clip_Tw_IBMIBS") #; plot(st_geome
 r.pest2 <- r.pest.tw
 r.pest2<- st_zm(r.pest2 ,drop = TRUE) # this is a linear feature so need to buffer to estimate area calcs
 r.pest2 = st_cast(r.pest2,"POLYGON")#; st_is_valid(r.pest2)
-#r.pest2 = st_make_valid(r.pest2)
+r.pest2 = st_make_valid(r.pest2) # ; st_is_valid(r.pest2)
 r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
-r.pest2<- st_intersection(all.range,r.pest2) #; st_is_valid(b.r.0)
+
+## Up to here 
+r.pest2<- st_intersection(all.range,r.pest2) #; st_is_valid(all.range)
 #plot(st_geometry(r.pest2), col = 'red') ; plot(st_geometry(all.range),add = T)
 
 r.pest.df2 = r.pest2
@@ -377,15 +338,14 @@ r.pest.df2<- mutate(r.pest.df2,dec.period = ifelse(CAPTURE_YEAR >= 2010 & CAPTUR
 b.range.temp <-  all.range[all.range$SiteName == "Tweedsmuir",]
 r.pest.df.temp <- r.pest.df2[r.pest.df2$SiteName =="Tweedsmuir",]
 
-
 p1 = ggplot() + 
   geom_sf(data = b.range.temp) +
   #geom_sf(data = r.cut.df, col = "red") + facet_grid(.~ dec.period)+  
   geom_sf(data = r.pest.df.temp , col = "red") + facet_wrap(~dec.period) #+       
 #theme_()
 p1
-ggsave(paste(out.dir,"Telkwa_pest_decades.png",sep = ""))  
+ggsave(paste(out.dir,"Tweedsmuir_pest_decades.png",sep = ""))  
 
 
-
+################################################################################
 
