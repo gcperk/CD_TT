@@ -475,6 +475,7 @@ b.s1 <- st_union(b.s1)
       b.r2$Area.m <- as.numeric(st_area(b.r2))
       b.r2.df = as.data.frame(b.r2)
       b.r2.df.out  = b.r2.df %>% 
+        
         group_by(SiteName,V17_CH) %>%
         filter(V17_CH == "Low Elevation Winter Range") %>% 
         summarise(R_Road_area_m = sum(Area.m))
@@ -1061,7 +1062,7 @@ r.pest <- st_cast(r.pest,"POLYGON")
 #plot(st_geometry(r.pest), col = 'red')
 #plot(st_geometry(all.range),add = T)
 
-    # burns 0-40 years 
+    # pest 0-40 years 
     r.p.0.40 = r.pest[r.pest$TimeSincePest <41,]; #sort(unique(b.r.0$TimeSinceBurn)) 
     r.p.0.40 = st_union(r.p.0.40)
     r.p.0.40 <- st_cast(r.p.0.40,"POLYGON") #; st_is_valid(r.p.0.40)
@@ -1312,21 +1313,106 @@ r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
     write.csv(all.range.out,paste(temp.dir,"Temp_output_summary_all.csv",sep =""))        
     
   
-    
-      
+ 
 ############################################################################
 
 ## Aggregate static and temporal data sets
 
     ## Part 1: Spatial Data 
        
+    # read in the static dataset
+    # write out all the layers combined into a single disturbance layer ( note this excludes Roads and Seismic )
+    st.di = st_read(paste(temp.dir,"Static_disturb_TT1.shp",sep = "")) # this writes out as single layer   
+    st.di = st_transform(st.di,3005)
+    st.di = st_cast(st.di,"POLYGON")
+    
+    # Aggregate the disturbance per decade for temporal data sets. 
     
     
+    # 1970 
     ## UP TO HERE
     
     
     
+    # 1950
+    Cut.dec.1950 
+    dist.1950 <- st_union(Cut.dec.1950, Cut.dec.19502 )
     
+    
+    
+    
+    # 1960
+    # add cutblocks
+    dist.1960 <- st_union(Cut.dec.1960, Cut.dec.19602 ) # cut 
+    dist.1960 <- st_cast(dist.1960,"POLYGON")
+    dist.1960 <- st_union(dist.1960) ; head(dist.1960)
+    # add burns 
+    dist.1960 <- st_union(dist.1960, Burn.dec.1960 )
+    dist.1960 <- st_cast(dist.1960,"POLYGON")
+    dist.1960 <- st_union(dist.1960); plot(st_geometry(dist.1960))
+    # add pests Telk
+    dist.1960 <- st_union(dist.1960, Pest.dec.1960)
+    dist.1960 <- st_cast(dist.1960,"POLYGON")
+    dist.1960 <- st_union(dist.1960); plot(st_geometry(dist.1960))
+    # add pests Tweed
+    dist.1960 <- st_union(dist.1960, Pest.dec.19602)
+    dist.1960 <- st_cast(dist.1960,"POLYGON")
+    dist.1960 <- st_union(dist.1960); plot(st_geometry(dist.1960))
+   
+    
+    dist.1960 <- st_cast(dist.1960,"POLYGON")
+    dist.1960 <- st_union( st.di,dist.1960)
+    dist.1960 <- st_intersection(all.regions,dist.1960)
+    st.di 
+    
+    # 1970 
+    ## UP TO HERE
+
+
+    Cut.dec.1970 <-r.cut.df %>% filter(dec.period < 1971 )
+    Cut.dec.1980 <-r.cut.df %>% filter(dec.period < 1981 )
+    Cut.dec.1990 <- r.cut.df %>% filter(dec.period < 1991 )
+    Cut.dec.2000 <- r.cut.df%>% filter(dec.period < 2001 )
+    Cut.dec.2010 <- r.cut.df %>% filter(dec.period < 2011 )
+    
+    # generate cumulative burn disturbance shapefiles to be added sequentially to "static Disturbance" 
+    head(r.cut.df2) ; unique(r.cut.df2$dec.period)
+    Cut.dec.19502 <- r.cut.df2 %>% filter(dec.period == 1950)
+    Cut.dec.19602 <- r.cut.df2 %>% filter(dec.period < 1961 )
+    Cut.dec.19702 <-r.cut.df2 %>% filter(dec.period < 1971 )
+    Cut.dec.19802 <-r.cut.df2 %>% filter(dec.period < 1981 )
+    Cut.dec.19902 <- r.cut.df2 %>% filter(dec.period < 1991 )
+    Cut.dec.20002 <- r.cut.df2%>% filter(dec.period < 2001 )
+    Cut.dec.20102 <- r.cut.df2 %>% filter(dec.period < 2011 )
+    
+    
+  
+    Pest.dec.1960 <- r.pest.df %>% filter(dec.period < 1961 )
+    Pest.dec.1970 <- r.pest.df %>% filter(dec.period < 1971 )
+    Pest.dec.1980 <- r.pest.df %>% filter(dec.period < 1981 )
+    Pest.dec.1990 <- r.pest.df %>% filter(dec.period < 1991 )
+    Pest.dec.2000 <- r.pest.df %>% filter(dec.period < 2001 )
+    Pest.dec.2010 <- r.pest.df %>% filter(dec.period < 2011 )
+    
+    Tweeds
+    Pest.dec.19502 <- r.pest.df2 %>% filter(dec.period == 1950)
+    Pest.dec.19602 <- r.pest.df2 %>% filter(dec.period < 1961 )
+    Pest.dec.19702 <- r.pest.df2 %>% filter(dec.period < 1971 )
+    Pest.dec.19802 <- r.pest.df2 %>% filter(dec.period < 1981 )
+    Pest.dec.19902 <- r.pest.df2 %>% filter(dec.period < 1991 )
+    Pest.dec.20002 <- r.pest.df2 %>% filter(dec.period < 2001 )
+    Pest.dec.20102 <- r.pest.df2 %>% filter(dec.period < 2011 )
+    
+    
+    Telkwa/Tweeds 
+    
+    Burn.dec.1950 <- Burn.dec %>% filter(dec.period == 1950)
+    Burn.dec.1960 <- Burn.dec %>% filter(dec.period < 1961 )
+    Burn.dec.1970 <- Burn.dec %>% filter(dec.period < 1971 )
+    Burn.dec.1980 <- Burn.dec %>% filter(dec.period < 1981 )
+    Burn.dec.1990 <- Burn.dec %>% filter(dec.period < 1991 )
+    Burn.dec.2000 <- Burn.dec %>% filter(dec.period < 2001 )
+    Burn.dec.2010 <- Burn.dec %>% filter(dec.period < 2011 )
     
     
     
