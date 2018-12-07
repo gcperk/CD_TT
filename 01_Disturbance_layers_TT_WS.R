@@ -451,7 +451,7 @@ r.pest = st_cast(r.pest,"POLYGON")
       r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 1990 & CAPTURE_YEAR <= 1999,1990,dec.period))
       r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 2000 & CAPTURE_YEAR <= 2009,2000,dec.period))
       r.pest.df<- mutate(r.pest.df,dec.period = ifelse(CAPTURE_YEAR >= 2010 & CAPTURE_YEAR <= 2018,2010,dec.period))
-
+ 
       r.pest.df <- r.pest.df %>% dplyr::select(PEST_SPECIES_CODE,CAPTURE_YEAR,dec.period,Shape)     
       r.pest.df <- st_cast(r.pest.df,"POLYGON")
       
