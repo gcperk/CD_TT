@@ -55,10 +55,6 @@ library(mapview)
 
 ## set your output directory 
 
-## To run analysis on restricted folder
-#out.dir = "X:/projects/Desktop_Analysis/data/output1/"
-#temp.dir = "X:/projects/Desktop_Analysis/data/temp/"
-
 # to run analysis on W drive: 
 #out.dir = "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Outputs/"
 #temp.dir = "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Data"
@@ -66,9 +62,7 @@ library(mapview)
 # to run analysis on C drive: 
 out.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/"
 temp.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Data/"
-
-#temp.dir = "T:/temp/Perkins/Data/"
-#out.dir = "T:/temp/Perkins/Outputs/" 
+final.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/whitesale/"
 
 ## Set your input geodatabases (this will be where you saved your arcmap exports)
 ## edit these to your filepath and name of gdb
@@ -90,8 +84,8 @@ b.range <-st_cast(b.range,"MULTIPOLYGON")     # fix overlaps
 # read in the whitesale boundary (simple dissolved range)
 
 ws.range <- st_read(dsn=Base,layer="WS_bdry_simple") 
-plot(st_geometry(ws.range),col = "red")
-plot(st_geometry(b.range), add = TRUE)
+#plot(st_geometry(ws.range),col = "red")
+#plot(st_geometry(b.range), add = TRUE)
 
 ws.range <-st_cast(ws.range,"POLYGON") 
 ws.range$area = as.numeric(st_area(ws.range))
@@ -145,7 +139,7 @@ r.rec.sf <- st_zm(r.rec.sf ,drop = TRUE)
         
        # plot(st_geometry(r.rec),add = T,col = "blue") 
         ##plot(st_geometry(r.rec))
-        #st_write(r.rec,"Dist_R_Rec_buf.shp")       #write out individual dist_layer for Range
+        st_write(r.rec,paste(final.dir,"WS_d_rec_buf.shp",sep = ""))      #write out individual dist_layer for Range
         
         # combine into disturbance by layer 
         all.range.out <- cbind(Herd_key,r.rec.area)  
@@ -172,7 +166,7 @@ r.rec.sf <- st_zm(r.rec.sf ,drop = TRUE)
         b.r <- st_union(b.r2.sf,b.r1.sf) #; plot(st_geometry(b.r2.sf),add = TRUE)
         b.r <- st_union(b.r)
         b.road.Area.m <- sum(as.numeric(st_area(b.r)))
-   
+        st_write(b.r,paste(final.dir,"WS_d_road_buf.shp", sep ="/"))  
       # combine into disturbance by layer 
       all.range.out <- cbind(all.range.out,b.road.Area.m)  
      
@@ -186,7 +180,7 @@ r.rec.sf <- st_zm(r.rec.sf ,drop = TRUE)
 # end of part 1: write out all the static disturbance types;
         
 # write out all the layers combined into a single disturbance layer ( note this excludes Roads and Seismic )
-st_write(outbuf,paste(temp.dir,"WS_static_disturbance_buf.shp",sep = "")) # this writes out as single layer   
+st_write(outbuf,paste(temp.dir,"WS_static_disturbance_buf1.shp",sep = "")) # this writes out as single layer   
 # Write out the datasheet onto a temp file 
 write.csv(all.range.out,paste(temp.dir,"WS_static_dist_buf.csv",sep = "") )        
   
@@ -195,14 +189,29 @@ write.csv(all.range.out,paste(temp.dir,"WS_static_dist_buf.csv",sep = "") )
 # read in pre-processed data (if script has previously been run through)
 
 all.range.out = read.csv(paste(temp.dir,"WS_static_dist_buf.csv",sep = ""))
-out1 = st_read(paste(temp.dir,"WS_static_disturbance_buf.shp",sep = "")) # this reads in cumulative disturbance as shapefile 
-out1 = st_transform(out1,3005) ; plot(st_geometry(out1))
-out1 = st_cast(out1,"POLYGON") 
 
 ################################################################################    
 ################################################################################
 
 ## 8) Cutblock ## this is all years of consolidated cutblock layer 
+
+# Cutblock data was suplemented with canfor recent cutblock data from 2016-2018 
+
+# cutblock data from Canfor 2016 - 2018 data set 
+b.r.c1 = st_read(paste("C:\\Temp\\TweedTelkwa\\Temp\\Perkins\\Data\\whitesail_shapefiles_2018_12_10","Whitesail_harvested_blocks_cfp_2018_12_11.shp",sep = "\\"))
+b.r.c1  = st_transform(b.r.c1 ,3005) 
+#unique(b.r.c1$HS_DATE)
+b.r.c1  = st_union(b.r.c1)
+b.r.c1  = st_buffer(b.r.c1 ,250)
+
+#plot(st_geometry(b.r.c1))
+#plot(st_geometry(b.r.c),add = T, col="red")
+
+b.r.c1<- st_intersection(ws.range,b.r.c1) ; plot(st_geometry(b.r.c1 ))
+b.r.c1 = st_cast(b.r.c1,"POLYGON")
+b.r.c1  = st_union(b.r.c1)
+########################
+
 # Split out age classes
 
 b.r.c = st_read(dsn = Base , layer = "cutblock_union_Tw")
@@ -219,6 +228,7 @@ b.r.c = st_make_valid(b.r.c)
     #b.r.c0.80 = st_cast(b.r.c0.80,"POLYGON"); #
     b.r.c0.80 = st_make_valid(b.r.c0.80)
     b.r.c0.80 = st_buffer(b.r.c0.80,250)
+    b.r.c0.80 = st_union(b.r.c0.80,b.r.c1 ) # add the latest data (as processed above from canfore )
     b.r.c0.80 = st_union(b.r.c0.80)
     b.r.c0.80.area = sum(st_area(b.r.c0.80)) 
       
@@ -227,6 +237,7 @@ b.r.c = st_make_valid(b.r.c)
     b.r.c0.40 = st_cast(b.r.c0.40,"POLYGON")
     b.r.c0.40 = st_make_valid(b.r.c0.40) #; st_is_valid(b.r.c0.40)
     b.r.c0.40 = st_buffer(b.r.c0.40,250)
+    b.r.c0.40 = st_union(b.r.c0.40,b.r.c1 ) # add the additional Canfor data (2016-2018)
     b.r.c0.40 = st_union(b.r.c0.40)
     b.r.c0.40.area = sum(st_area(b.r.c0.40)) #260124543  [m^2]
  
@@ -254,6 +265,8 @@ b.r.c = st_make_valid(b.r.c)
     Cut.dec.1990 <- r.cut.df %>% filter(dec.period < 1991 )
     Cut.dec.2000 <- r.cut.df%>% filter(dec.period < 2001 )
     Cut.dec.2010 <- r.cut.df %>% filter(dec.period < 2011 )
+    Cut.dec.2010 <- st_union(Cut.dec.2010 ,b.r.c1)
+    st_is_valid(Cut.dec.2010 )
     
     ## write out the shapefiles to Data.drive
     #st_write(Cut.dec.1970,paste(temp.dir,"Cut.ws.dec.1970.shp",sep = "")) # this writes out as single layer
@@ -304,6 +317,7 @@ b.r.c = st_make_valid(b.r.c)
     c.2000 = st_intersection(ws.range, c.2000) ; c.2000 <- st_make_valid(c.2000)
     c.2000 <- st_cast(c.2000,"POLYGON")
     c.2000$area.m = as.numeric(st_area(c.2000))
+    st_write(c.2000,paste(temp.dir,"cut.2000.WS.buf.shp",sep ="")) # write these out so we can join them in arcmap to the pest data 
     c.2000.df <- as.data.frame(c.2000) 
     c.2000.df.out <-  c.2000.df %>% 
       mutate(AOI = "whitesale")%>%
@@ -315,6 +329,7 @@ b.r.c = st_make_valid(b.r.c)
     c.2010 <- st_cast(c.2010,"POLYGON") ; st_is_valid(c.2010); c.2010 <- st_make_valid(c.2010)
     c.2010 = st_intersection(ws.range, c.2010) 
     c.2010 <- st_cast(c.2010,"POLYGON")
+    st_write(c.2010,paste(temp.dir,"cut.2010.WS.buf.shp",sep ="")) 
     c.2010$area.m = as.numeric(st_area(c.2010))
     c.2010.df <- as.data.frame(c.2010) 
     c.2010.df.out <-  c.2010.df %>% 
@@ -367,10 +382,11 @@ r.pest<- st_zm(r.pest ,drop = TRUE) # this is a linear feature so need to buffer
 r.pest = st_cast(r.pest,"POLYGON")
 r.pest <-  st_intersection(ws.range,r.pest) #; st_is_valid(r.pest)
 r.pest$TimeSincePest = 2018-r.pest$CAPTURE_YEAR  #sort(unique(r.pest$CAPTURE_YEAR)) # 1985 - 2015 
+r.pest  <-st_buffer(r.pest,0.0)
 r.pest = st_cast(r.pest,"POLYGON")
-r.pest  <-st_buffer(r.pest ,250)
-
 #st_is_valid(r.pest)
+r.pest  <-st_buffer(r.pest,250)
+r.pest <-  st_intersection(ws.range,r.pest) 
    
       r.pest.df = r.pest
       
@@ -385,15 +401,22 @@ r.pest  <-st_buffer(r.pest ,250)
       #r.pest.df <- st_cast(r.pest.df,"POLYGON")
       
       # split into decades 
-      pest.dec.1980 <- r.cut.df %>% filter(dec.period < 1981 )
-      pest.dec.1990 <- r.cut.df %>% filter(dec.period < 1991 )
-      pest.dec.2000 <- r.cut.df%>% filter(dec.period < 2001 )
-      pest.dec.2010 <- r.cut.df %>% filter(dec.period < 2011 )
+      pest.dec.1980 <- r.pest.df %>% filter(dec.period < 1981 )
+      pest.dec.1990 <- r.pest.df %>% filter(dec.period < 1991 )
+      pest.dec.2000 <- r.pest.df%>% filter(dec.period < 2001 )
+              #pest.dec.2000 = st_make_valid( pest.dec.2000); 
+              #pest.dec.2000.u = st_union(pest.dec.2000)
+              pest.dec.2000 = st_cast(pest.dec.2000,"POLYGON")
+     
+      pest.dec.2010 <- r.pest.df %>% filter(dec.period < 2011 )
+              pest.dec.2010 <- st_buffer(pest.dec.2010, 0.0) # there is a point in this file so if we buffer by zero we can convert to polygon 
+             # pest.dec.2010 = st_make_valid(pest.dec.2010); 
+             pest.dec.2010 = st_cast(pest.dec.2010,"POLYGON")
       
-      st_write(pest.dec.1980,paste(temp.dir,"pest.ws.dec.1980.buf.shp",sep = "")) # this writes out as single layer
-      st_write(pest.dec.1990,paste(temp.dir,"pest.ws.dec.1990.buf.shp",sep = "")) # this writes out as single layer
-      st_write(pest.dec.2000,paste(temp.dir,"pest.ws.dec.2000.buf.shp",sep = "")) # this writes out as single layer
-      st_write(pest.dec.2010,paste(temp.dir,"pest.ws.dec.2010.buf.shp",sep = "")) # this writes out as single layer
+      st_write(pest.dec.1980,paste(temp.dir,"pest.ws.1980.buf.shp",sep = "")) # this writes out as single layer
+      st_write(pest.dec.1990,paste(temp.dir,"pest.ws.1990.buf.shp",sep = "")) # this writes out as single layer
+      st_write(pest.dec.2000,paste(temp.dir,"pest.ws.2000.buf.shp",sep = "")) # this writes out as single layer
+      st_write(pest.dec.2010,paste(temp.dir,"pest.ws.2010.buf.shp",sep = "")) # this writes out as single layer
       
       #r.pest.df[r.pest.df$dec.period == 0,]
       #head(r.pest.df)
@@ -423,10 +446,11 @@ r.pest  <-st_buffer(r.pest ,250)
         summarise(R_pest_1990_m2 = sum(area.m))
       r.pest.out.total = left_join(r.pest.out.total,p.1990.df.out) # add to the data summary
       
-      p.2000 <- st_union(pest.dec.2000)
-      p.2000 <- st_cast(p.2000,"POLYGON") #; st_is_valid(c.2000)
+      # for the 2000 and 2010 data sets need to preproces in Arcmap to be able to run (possibly this is a computer issue)
+      p.2000 <- st_read(paste(temp.dir,"p2000ws_buf_d.shp",sep = "")) #; plot(st_geometry(r.pest.tw))
+      p.2000 <- st_set_crs(p.2000,3005)
+      p.2000 <- st_cast(p.2000,"POLYGON")
       p.2000 = st_intersection(ws.range, p.2000) ; p.2000 <- st_make_valid(p.2000)
-      #p.2000 <- st_cast(c.2000,"POLYGON")
       p.2000$area.m = as.numeric(st_area(p.2000))
       p.2000.df <- as.data.frame(p.2000) 
       p.2000.df.out <-  p.2000.df %>% 
@@ -434,12 +458,15 @@ r.pest  <-st_buffer(r.pest ,250)
         group_by(AOI)%>%
         summarise(R_pest_2000_m2 = sum(area.m))
       r.pest.out.total = left_join(r.pest.out.total,p.2000.df.out) # add to the data summary
-      
-      p.2010 <- st_union(pest.dec.2010)
-      p.2010 <- st_cast(p.2010,"POLYGON") #; st_is_valid(b.2010); b.2010 <- st_make_valid(b.2010)
+    
+      # 2010 
+      # read in pre-dissolved layers created in ArcMap 
+      p.2010 <-  st_read(paste(temp.dir,"p2010ws_buf_d.shp",sep = "")) #; plot(st_geometry(r.pest.tw))
+      p.2010 <- st_set_crs(p.2010, 3005)
+      p.2010 <- st_cast(p.2010,"POLYGON")
+      p.2010 <- st_union(p.2010 )
+      p.2010 <- st_make_valid(p.2010) ; plot(st_geometry(p.2010))
       p.2010 = st_intersection(ws.range, p.2010) 
-      #head(b.2010)
-      #p.2010 <- st_cast(b.2010,"POLYGON")
       p.2010$area.m = as.numeric(st_area(p.2010))
       p.2010.df <- as.data.frame(p.2010) 
       p.2010.df.out <-  p.2010.df %>% 
@@ -457,35 +484,13 @@ r.pest  <-st_buffer(r.pest ,250)
       write.csv(all.temp.out,paste(temp.dir,"WS_temp_dist_buf.csv",sep = ""))
 
 ############################################################################
-
-# Step 1 aggregate tables  static data with the temporal data (all.temp.out)
-      all.range.out = read.csv(paste(temp.dir,"WS_static_dist_buf.csv",sep = "")) 
+## Consolidate all the disturbance into a single oytput per decade
       
-      all.range.out = all.range.out[,c(2,3,4,5)] 
-      #all.range.out = all.range.out[,c(2,3,5)] 
-      all.range.out = cbind(all.range.out,all.temp.out)   # add the temporal data areas  
-      #all.range.out = cbind(all.range.out, all.dist.tally) # add the combined totals per year. 
-      
-      ## adjust this section based on the line above
-      
-      all.range.out = all.range.out[,-c(5,15)]     # check this after re-running roads layer 
-      x = as.tibble(all.range.out)
-      x = x %>% tidyr::gather(attribute, value)
-      
-      x <- x[-1,]
-      x <- x %>% mutate(Area_ha = as.numeric(value)/10000) %>% mutate(Area_pc = (Area_ha/45041) * 100 )
-      
-      write.csv(x,paste(out.dir,"Final_WS_data_summary_ha_pc_buf.csv",sep = ""))
-      
- 
 # read in pre-processed data (if script has previously been run through)
 
 all.range.out = read.csv(paste(temp.dir,"WS_static_dist_buf.csv",sep = ""))
 out1 = outbuf
 rm(outbuf)
-#out1 = st_read(paste(temp.dir,"WS_static_disturbance_buf.shp",sep = "")) # this reads in cumulative disturbance as shapefile 
-#out1 = st_set_crs(out1,3005) ; plot(st_geometry(out1))
-#out1 = st_cast(out1,"POLYGON") 
 
 # only cut & pest layers (no burns)
 # add the temporal disturbance and calculate total disturbance per decade
@@ -506,7 +511,7 @@ rm(outbuf)
     dist.1980 <- st_union(out1, dist.1980) # join together the disturbance layers (temporal + static)
     dist.1980 <- st_union(dist.1980)
     dist.1980.area.m <- sum(st_area(dist.1980)) ; #head(dist.1980)
-    st_write(dist.1980,paste(temp.dir,"Dist_1980_WS_buf.shp",sep = "")) 
+    st_write(dist.1980,paste(temp.dir,"Dist_1980_WS_buf1.shp",sep = "")) 
     
     all.dist.tally_buf = cbind(all.dist.tally_buf, dist.1980.area.m) 
     
@@ -517,48 +522,42 @@ rm(outbuf)
     dist.1990 <- st_union(dist.1990)  ; head(dist.1990)
     dist.1990 <-st_cast(dist.1990,"POLYGON")
     dist.1990.area.m <- sum(st_area(dist.1990))
-    st_write(dist.1990,paste(temp.dir,"Dist_1990_WS_buf.shp",sep = "")) 
+    st_write(dist.1990,paste(temp.dir,"Dist_1990_WS_buf1.shp",sep = "")) 
     all.dist.tally_buf = cbind(all.dist.tally_buf, dist.1990.area.m) 
     
 #2000
-    dist.2000 <- st_union(p.2000, c.2000)  # join cut and pest areas. 
-    dist.2000 <- st_union(dist.2000)
-    dist.2000 <- st_union(out1, dist.2000) # join together the disturbance layers (temporal + static)
-    dist.2000 <- st_union(dist.2000)
+    dist.2000 <- st_read(paste(temp.dir,"Dist_2000_WS_buf_d.shp",sep = ""))
+    dist.2000 <- st_transform(dist.2000, 3005)
     dist.2000 <-st_cast(dist.2000,"POLYGON")
+    dist.2000 <- st_union(dist.2000)
     dist.2000.area.m <- sum(st_area(dist.2000))
-    st_write(dist.2000,paste(temp.dir,"Dist_2000_WS_buf.shp",sep = "")) 
-    
     all.dist.tally_buf = cbind(all.dist.tally_buf, dist.2000.area.m) 
-#2010
-    dist.2010 <- st_union(p.2010, c.2010)  # join cut and pest areas. 
-    dist.2010 <- st_union(dist.2010)
-    dist.2010 <- st_union(out1,dist.2010) # join together the disturbance layers (temporal + static)
-    dist.2010 <- st_union(dist.2010)
-    dist.2010 <-st_cast(dist.2010,"POLYGON")
-    dist.2010.area.m <- sum(st_area(dist.2010))
-    st_write(dist.2000,paste(temp.dir,"Dist_2010_WS_buf.shp",sep = ""))
-
-    all.dist.tally_buf = cbind(all.dist.tally_buf, dist.2010.area.m) 
-   
     
-     write.csv(all.dist.tally_buf,paste(temp.dir,"Final_WS_data_summary_buf_cumulate.csv",sep = ""))
+#2010
+    dist.2010 <- st_read(paste(temp.dir,"Dist_2010_WS_buf_d.shp",sep = ""))
+    dist.2010 <-st_transform(dist.2010, 3005)
+    dist.2010 <-st_cast(dist.2010,"POLYGON")
+    dist.2010 <- st_union(dist.2010)
+    dist.2010.area.m <- sum(st_area(dist.2010))
+   
+    all.dist.tally_buf = cbind(all.dist.tally_buf, dist.2010.area.m) 
+  
+    write.csv(all.dist.tally_buf,paste(temp.dir,"Final_WS_data_summary_buf_cumulate.csv",sep = ""))
     
     
 ##############################################################
      
      # Step 2 aggregate tables  static data with the temporal data (all.temp.out)
      all.range.out = read.csv(paste(temp.dir,"WS_static_dist_buf.csv",sep = "")) 
-     
-     
+  
      all.range.out = all.range.out[,c(2,3,4,5)] 
-     #all.range.out = all.range.out[,c(2,3,5)] 
      all.range.out = cbind(all.range.out,all.temp.out)   # add the temporal data areas  
      all.range.out = cbind(all.range.out, all.dist.tally_buf) # add the combined totals per year. 
      
      ## adjust this section based on the line above
      
      all.range.out = all.range.out[,-c(5,15)]     # check this after re-running roads layer 
+    # all.range.out = all.range.out[,-c(18)]  
      x = as.tibble(all.range.out)
      x = x %>% tidyr::gather(attribute, value)
      
@@ -582,18 +581,6 @@ p1
 ggsave(paste(out.dir,"WS_buf_cutblock_decades.png",sep = ""))              
 
 ############################################################################
-
-# Figure 2: make a plot of temporal pest disturbance 
-
-p1 = ggplot() + 
-  geom_sf(data = ws.range) +
-  #geom_sf(data = r.cut.df, col = "red") + facet_grid(.~ dec.period)+  
-  geom_sf(data = r.pest.df, col = "red") + facet_wrap(~dec.period) #+       
-#theme_()
-
-p1
-ggsave(paste(out.dir,"WS_buf_pest_decades.png",sep = ""))  
-
 
 ### generate a plot to show location
 
