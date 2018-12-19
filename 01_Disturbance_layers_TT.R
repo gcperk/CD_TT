@@ -36,8 +36,11 @@ install.packages(c("rgdal","ggplot2","sp","dplyr","raster","rgeos","maptools","m
                    "tidyr","sf","lwgeom","mapview"),dep = T )
 
 # for running on external GTS 
-#install.packages(c("rgdal","ggplot2","sp","dplyr","raster","rgeos","maptools","magrittr","tibble", 
-#                   "tidyr","sf","lwgeom","mapview"),dep = T , lib = "C:/Users/genperk/R_packages/")
+install.packages(c("rgdal","ggplot2","sp","dplyr","raster","rgeos","maptools","magrittr","tibble", 
+                   "tidyr","sf","lwgeom","mapview"),dep = T , lib = "C:/Program Files/R/R-3.5.1/library/")
+
+
+install.packages(c("rgdal","ggplot2"),dep = T , lib = "C:/Program Files/R/R-3.5.1/library/")
 
 library(ggplot2)
 library(dplyr)
@@ -61,6 +64,7 @@ library(mapview)
 # to run analysis on C drive: 
 out.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/"
 temp.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Data/"
+shape.output.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/disturb_layers/"
 
 ## Set your input geodatabases (this will be where you saved your arcmap exports)
 ## edit these to your filepath and name of gdb
@@ -140,7 +144,7 @@ r.pipe <- st_read(dsn=Base,layer="Pipeline_clip") # multistring # read in the fe
           r.pipe.int$Area.m <- as.numeric(st_area(r.pipe.int)) # calculate the area of the pipeline
           
           #plot(st_geometry(r.pipe.int)) # check by plotting 
-          #st_write(r.pipe.int,"Dist_R_pipe.shp")       #write out individual dist_layer for Range
+          st_write(r.pipe.int,paste(shape.output.dir,"Dist_R_pipe.shp",sep = ""))     #write out individual dist_layer for Range
           r.pipe.int.df = data.frame(r.pipe.int)        # Convert to a dataframe
           r.pipe.int.df.out  = r.pipe.int.df %>%        # calculate to total area per herd and habitat type 
                    group_by(SiteName,V17_CH) %>% 
@@ -163,7 +167,7 @@ r.tran.sf <- st_read(dsn=Base,layer="Trans_clip") # multistring   # read in data
             summarise(R_Trans_area_m = sum(area_m))
         
           ##plot(st_geometry(r.tran))
-          #st_write(r.tran,"Dist_R_tran.shp")       #write out individual dist_layer for Range
+          st_write(r.tran,paste(shape.output.dir,"Dist_R_tran.shp",sep = ""))       #write out individual dist_layer for Range
           #out.trans <- r.tran.df.out 
           all.range.out<- left_join(all.range.out, r.tran.df.out)     
           all.range.out[is.na(all.range.out)]<-0
@@ -174,7 +178,6 @@ r.tran.sf <- st_read(dsn=Base,layer="Trans_clip") # multistring   # read in data
           out = st_cast(out,"POLYGON")
           ##x.area = sum(st_area(out)) ; x.area #298446.6 
           
-          
 # 3) mine 
 r.mine.sf <- st_read(dsn=Base,layer="Mining_clip") # multipoly
 r.mine <- st_zm(r.mine.sf,drop = TRUE) # drop the z portion of the shapefile. 
@@ -183,6 +186,8 @@ r.mine <- st_zm(r.mine.sf,drop = TRUE) # drop the z portion of the shapefile.
           r.mine <- st_cast(r.mine,"POLYGON")
           #st_is_valid(r.mine)                   # check valid geometr
           r.mine$Area.m <- as.numeric(st_area(r.mine))
+          st_write(r.mine,paste(shape.output.dir,"Dist_R_mine.shp",sep = ""))
+          
           r.mine.df = data.frame(r.mine)        # calculate the length per range 
           r.mine.df.out  = r.mine.df %>% 
             group_by(SiteName,V17_CH) %>% 
@@ -211,6 +216,8 @@ r.agr.sf <- st_zm(r.agr.sf,drop = TRUE)
         r.agr <- st_cast( r.agr,"POLYGON")
         #st_is_valid(r.agr)                   # check valid geometr
         r.agr$Area.m <- as.numeric(st_area(r.agr))
+        st_write(r.agr,paste(shape.output.dir,"Dist_R_agri.shp",sep = ""))
+      
         r.agr.df = data.frame(r.agr)        # calculate the length per range 
         r.agr.df.out  = r.agr.df %>% 
           group_by(SiteName,V17_CH) %>% 
@@ -236,6 +243,9 @@ r.air.sf <- st_cast(r.air.sf,"POLYGON")
           r.air <- st_cast( r.air,"POLYGON")
           #st_is_valid(r.air)                   # check valid geometr
           r.air$Area.m <- as.numeric(st_area(r.air))
+          
+          st_write(r.air,paste(shape.output.dir,"Dist_R_air.shp",sep = ""))
+          
           r.air.df = data.frame(r.air)        # calculate the length per range 
           r.air.df.out  = r.air.df %>% 
             group_by(SiteName,V17_CH) %>% 
@@ -260,7 +270,7 @@ r.dam.sf  <- st_zm(r.dam.sf ,drop = TRUE)
         r.dams <- st_cast(r.dams,"POLYGON")
         r.dams$Area.m <- as.numeric(st_area(r.dams))
         ##plot(st_geometry(r.dams))
-        #st_write(r.dams,"Dist_R_dams.shp")       #write out individual dist_layer for Range
+        st_write(r.dams,paste(shape.output.dir,"Dist_R_dams.shp",sep = ""))       #write out individual dist_layer for Range
         r.dams.df = data.frame(r.dams)        # calculate the length per range 
         r.dams.df.out  = r.dams.df %>% 
           group_by(SiteName,V17_CH) %>% 
@@ -329,7 +339,7 @@ r.urban.sf <- st_cast(r.urban.sf,"POLYGON")
             r.urban = st_cast(r.urban,"POLYGON")
             r.urban$area <- as.numeric(st_area(r.urban))
             ##plot(st_geometry(r.urban))
-            #st_write(r.dams,"Dist_R_urban.shp")       #write out individual dist_layer for Range
+            st_write(r.urban,paste(shape.output.dir,"Dist_R_urban.shp", sep = ""))      #write out individual dist_layer for Range
             r.urban.df = data.frame(r.urban)        # calculate the length per range 
             r.urban.df.out  = r.urban.df %>% 
               group_by( SiteName,V17_CH) %>% 
@@ -373,6 +383,7 @@ r.rec.sf <- st_read(dsn=Base,layer="Rec_clip") # multipoly
 r.rec.sf <- st_zm(r.rec.sf ,drop = TRUE)
 r.rec.sf <- st_intersection(all.range,r.rec.sf)
 r.rec.sf <- st_union(r.rec.sf)
+
 #all.rec = sum(st_area(r.rec.sf)) ; plot(st_geometry(r.rec.sf))  
 
         ## ALL DISTURBANCE: UNION 8 # may need to run this in stand alone R rather than R -studio
@@ -383,8 +394,10 @@ r.rec.sf <- st_union(r.rec.sf)
        
         # 1) RANGE: calculate the range extent to use range extent 
         r.rec <- st_intersection(all.range,r.rec.sf)# intersect with range
+        r.rec <- st_buffer(r.rec,0)
         r.rec <- st_cast(r.rec,"POLYGON")
         r.rec$area = as.numeric(st_area(r.rec))
+        
         #all.rec = sum(st_area(r.rec))
         #st_is_valid(r.tran)                   # check valid geometr
         r.rec.df = data.frame(r.rec)        # calculate the length per range 
@@ -393,7 +406,7 @@ r.rec.sf <- st_union(r.rec.sf)
           summarise(R_Rec_m2 = sum(area))
         
         ##plot(st_geometry(r.rec))
-        #st_write(r.rec,"Dist_R_Rec.shp")       #write out individual dist_layer for Range
+        st_write(r.rec,paste(shape.output.dir,"Dist_R_rec.shp",sep = ""))       #write out individual dist_layer for Range
         
         # combine into disturbance by layer 
         all.range.out <- left_join(all.range.out,r.rec.df.out)  
@@ -416,6 +429,8 @@ b.s1 <- st_union(b.s1)
         #st_is_valid(b.s1)
 
         b.s1$area.m <- as.numeric(st_area(b.s1))
+        st_write(b.s1,paste(shape.output.dir,"Dist_R_seismic.shp",sep = ""))  # write out individual layer 
+        
         b.s1.df = data.frame(b.s1)        # calculate the length per range 
         b.s1.df.out  =  b.s1.df%>% 
           group_by(SiteName,V17_CH) %>% 
@@ -438,10 +453,11 @@ b.s1 <- st_union(b.s1)
       b.r1.sf = st_make_valid(b.r1.sf)
       b.r1.sf <- st_cast(b.r1.sf,"POLYGON")
       b.r1 = st_intersection(all.range,b.r1.sf )  # intersect with single all ranges
-      st_is_valid(b.r1.int)  
+      st_is_valid(b.r1)  
       b.r1$Area.m <- as.numeric(st_area(b.r1 ))
-      plot(st_geometry(b.r1))
-      #st_write(r.pipe.int,"Dist_R_pipe.shp")       #write out individual dist_layer for Range
+      #plot(st_geometry(b.r1))
+      
+      st_write(b.r1,paste(shape.output.dir,"Dist_Te_road.shp",sep = ""))      #write out individual dist_layer for Range
       b.r1.df = data.frame(b.r1)        # calcaulte area
       b.r1.df.out  = b.r1.df %>% 
         group_by(SiteName,V17_CH) %>% 
@@ -450,7 +466,7 @@ b.s1 <- st_union(b.s1)
 ## Tweedsmuir herd # Need to break this up into smaller sections then buffer and disolve within ArcMap
       # HWSR
       b.r2.sf = sf::st_read(dsn = Base , layer ="Tw_HWSR_Rd_bu" )
-      st_is_valid(b.r2.sf)
+      #st_is_valid(b.r2.sf)
       b.r2.sf = st_make_valid(b.r2.sf)
       b.r2.sf <- st_cast(b.r2.sf,"POLYGON")
       b.r2 = st_intersection(all.range,b.r2.sf)
@@ -481,7 +497,7 @@ b.s1 <- st_union(b.s1)
         summarise(R_Road_area_m = sum(Area.m))
       # add to the Telkwa data table and the spatial file. 
       b.df.out <- rbind( b.df.out,b.r2.df.out) # add to the roads summary table 
-      roads.union = st_union( roads.union,b.r2); rm(b.r2);  plot(st_geometry(roads.union))
+      roads.union = st_union(roads.union,b.r2); rm(b.r2);  plot(st_geometry(roads.union))
       roads.union = st_cast(roads.union,"POLYGON")
       roads.union = st_union(roads.union)
       roads.union = st_cast(roads.union,"POLYGON")
@@ -501,7 +517,7 @@ b.s1 <- st_union(b.s1)
         summarise(R_Road_area_m = sum(Area.m))
       # add to the Telkwa data table and the spatial file. 
       b.df.out <- rbind( b.df.out,b.r2.df.out) # add to the roads summary table 
-      roads.union = st_union( roads.union,b.r2); rm(b.r2);  plot(st_geometry(roads.union))
+      roads.union = st_union( roads.union,b.r2); rm(b.r2);  plot(st_geometry(roads.union))# takes some time
       roads.union = st_cast(roads.union,"POLYGON")
       roads.union = st_union(roads.union) 
       
@@ -528,6 +544,9 @@ b.s1 <- st_union(b.s1)
       roads.union = st_union(roads.union,b.r2.u); rm(b.r2.u);  plot(st_geometry(roads.union))
       roads.union = st_cast(roads.union,"POLYGON")
       roads.union = st_union(roads.union)
+      st_write(roads.union,paste(shape.output.dir,"Dist_R_road.shp",sep = ""))   
+      
+      
     
       ##Join the Roads layers back to the "combined static disturbance
       # combine into disturbance by layer 
@@ -1310,7 +1329,7 @@ r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
     all.range.out <- left_join(all.range.out,r.pest.out.all)  
     all.range.out[is.na(all.range.out)]<-0
     
-    write.csv(all.range.out,paste(temp.dir,"Temp_output_summary_all.csv",sep =""))        
+    write.csv(all.range.out,paste(temp.dir,"All_data_summary.csv",sep =""))        
     
   
  
@@ -1329,14 +1348,23 @@ r.pest2$TimeSincePest = 2018-r.pest2$CAPTURE_YEAR
     # Aggregate the disturbance per decade for temporal data sets. 
     
     
-    # 1970 
     ## UP TO HERE
     
+    ### 1950
+    # no data: Cut.dec.1950, Cut.dec.19502, Pest.dec.1950, Pest.dec.19502
+    # data :Burn.dec.1950, 
+    #plot(st_geometry(st.di)) ; plot(st_geometry(Burn.dec.1950))
+
+    dist.1950 <- st_union(st.di, Burn.dec.1950)
+    dist.1950 <- st_cast(dist.1950,"POLYGON") # fix geometry
+    #st_is_valid(dist.1950) # check valid
+    dist.1950 <- st_union(dist.1950)  # this may take some time to run 
+    #st_is_valid(dist.1950)
+    plot(st_geometry(dist.1950))
+    dist.1950 <- st_intersection(all.range,dist.1950)
+ 
+    dist.1950 <- 
     
-    
-    # 1950
-    Cut.dec.1950 
-    dist.1950 <- st_union(Cut.dec.1950, Cut.dec.19502 )
     
     
     
