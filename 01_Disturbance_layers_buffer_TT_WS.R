@@ -59,6 +59,12 @@ library(mapview)
 #out.dir = "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Outputs/"
 #temp.dir = "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Data"
 
+
+# to run on the I drive
+out.dir = "I:/ES/General/Wildlife/Wildlife Species/Caribou/Tweedsmuir caribou/2015-2018/Disturbance Analysis/Whitesale_AOI/Outputs/"
+temp.dir = "I:/ES/General/Wildlife/Wildlife Species/Caribou/Tweedsmuir caribou/2015-2018/Disturbance Analysis/Whitesale_AOI/Data/"
+final.dir = "I:/ES/General/Wildlife/Wildlife Species/Caribou/Tweedsmuir caribou/2015-2018/Disturbance Analysis/Whitesale_AOI/Final/"
+
 # to run analysis on C drive: 
 out.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/"
 temp.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Data/"
@@ -70,6 +76,9 @@ final.dir = "C:/Temp/TweedTelkwa/Temp/Perkins/Outputs/whitesale/"
 #Base= "Z:/01.Projects/Wildlife/Caribou/02.Disturbance/TweedTelkwa/Temp/Perkins/Data/Base_data.gdb" # contains 
 #Base= "T:/temp/Perkins/Data/Base_data.gdb"
 Base= "C:/temp/TweedTelkwa/Temp/Perkins/Data/Base_data.gdb" # contains 
+
+Base= "I:/ES/General/Wildlife/Wildlife Species/Caribou/Tweedsmuir caribou/2015-2018/Disturbance Analysis/Whitesale_AOI/Data/Base_data.gdb"
+
 
 ## List all feature classes in a file geodatabase
 subset(ogrDrivers(), grepl("GDB", name))
@@ -180,7 +189,7 @@ r.rec.sf <- st_zm(r.rec.sf ,drop = TRUE)
 # end of part 1: write out all the static disturbance types;
         
 # write out all the layers combined into a single disturbance layer ( note this excludes Roads and Seismic )
-st_write(outbuf,paste(temp.dir,"WS_static_disturbance_buf1.shp",sep = "")) # this writes out as single layer   
+st_write(outbuf,paste(temp.dir,"WS_static_disturbance_buf.shp",sep = "")) # this writes out as single layer   
 # Write out the datasheet onto a temp file 
 write.csv(all.range.out,paste(temp.dir,"WS_static_dist_buf.csv",sep = "") )        
   
@@ -198,7 +207,9 @@ all.range.out = read.csv(paste(temp.dir,"WS_static_dist_buf.csv",sep = ""))
 # Cutblock data was suplemented with canfor recent cutblock data from 2016-2018 
 
 # cutblock data from Canfor 2016 - 2018 data set 
-b.r.c1 = st_read(paste("C:\\Temp\\TweedTelkwa\\Temp\\Perkins\\Data\\whitesail_shapefiles_2018_12_10","Whitesail_harvested_blocks_cfp_2018_12_11.shp",sep = "\\"))
+#b.r.c1 = st_read(paste("C:\\Temp\\TweedTelkwa\\Temp\\Perkins\\Data\\whitesail_shapefiles_2018_12_10","Whitesail_harvested_blocks_cfp_2018_12_11.shp",sep = "\\"))
+b.r.c1 = st_read(paste(temp.dir,"\\whitesail_shapefiles_2018_12_10\\Whitesail_harvested_blocks_cfp_2018_12_11.shp",sep = ""))
+
 b.r.c1  = st_transform(b.r.c1 ,3005) 
 #unique(b.r.c1$HS_DATE)
 b.r.c1  = st_union(b.r.c1)
@@ -266,14 +277,14 @@ b.r.c = st_make_valid(b.r.c)
     Cut.dec.2000 <- r.cut.df%>% filter(dec.period < 2001 )
     Cut.dec.2010 <- r.cut.df %>% filter(dec.period < 2011 )
     Cut.dec.2010 <- st_union(Cut.dec.2010 ,b.r.c1)
-    st_is_valid(Cut.dec.2010 )
+    #st_is_valid(Cut.dec.2010 )
     
     ## write out the shapefiles to Data.drive
-    #st_write(Cut.dec.1970,paste(temp.dir,"Cut.ws.dec.1970.shp",sep = "")) # this writes out as single layer
-    #st_write(Cut.dec.1980,paste(temp.dir,"Cut.ws.dec.1980.shp",sep = "")) # this writes out as single layer
-    #st_write(Cut.dec.1990,paste(temp.dir,"Cut.ws.dec.1990.shp",sep = "")) # this writes out as single layer
-    #st_write(Cut.dec.2000,paste(temp.dir,"Cut.ws.dec.2000.shp",sep = "")) # this writes out as single layer
-    #st_write(Cut.dec.2010,paste(temp.dir,"Cut.ws.dec.2010.shp",sep = "")) # this writes out as single layer
+    st_write(Cut.dec.1970,paste(temp.dir,"Cut.ws.dec.1970.buf.shp",sep = "")) # this writes out as single layer
+    st_write(Cut.dec.1980,paste(temp.dir,"Cut.ws.dec.1980.buf.shp",sep = "")) # this writes out as single layer
+    st_write(Cut.dec.1990,paste(temp.dir,"Cut.ws.dec.1990.buf.shp",sep = "")) # this writes out as single layer
+    st_write(Cut.dec.2000,paste(temp.dir,"Cut.ws.dec.2000.buf.shp",sep = "")) # this writes out as single layer
+    st_write(Cut.dec.2010,paste(temp.dir,"Cut.ws.dec.2010.buf.shp",sep = "")) # this writes out as single layer
     
     # generate consolidated output summary tables for each decade (same as the 0-40 and 0-80 as above) overtime per decage 
     c.1970 <- st_union(Cut.dec.1970)
